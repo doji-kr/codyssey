@@ -1,0 +1,133 @@
+# ============================================================
+# macOS System Files
+# ============================================================
+
+# Finder metadata
+.DS_Store
+.DS_Store?
+._*
+
+# Finder directory settings
+.AppleDouble
+.LSOverride
+
+# Desktop Services Store (network/external volumes)
+.Spotlight-V100
+.Trashes
+
+# Volume icon file
+Icon?
+Icon
+
+# Thumbnails
+._*
+
+
+# ============================================================
+# macOS App Artifacts
+# ============================================================
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.xcarchive
+.build/
+
+# TextEdit
+*.rtfd/TMP/
+
+# Preview
+com.apple.Preview.plist
+
+# iCloud
+*.icloud
+
+
+# ============================================================
+# Editors & IDEs
+# ============================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (IntelliJ, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+Session.vim
+.netrwhist
+
+# Emacs
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+
+# ============================================================
+# Logs & Temporary Files
+# ============================================================
+
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.pid
+*.seed
+*.pid.lock
+
+
+# ============================================================
+# Environment & Secrets
+# ============================================================
+
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets.*
+
+
+# ============================================================
+# OS Misc
+# ============================================================
+
+# Windows (if collaborating cross-platform)
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+.Trash-*
