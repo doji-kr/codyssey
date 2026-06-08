@@ -473,7 +473,7 @@
         <td>아니오. 지원 종족 7개에 없음.<br>시스템이 '가장 가까운 종족으로 수렴'해야 함.</td>
         <td>system_prompt_aen.md 지원 종족 목록</td>
         <td class="c"><span class="pass-badge">✅ PASS</span><br><span style="font-size:11px;color:var(--muted)">수렴 처리</span></td>
-        <td class="c"><span class="pass-badge">✅ PASS</span><br><span style="font-size:11px;color:var(--muted)">수렴 처리</span></td>
+        <td class="c"><span class="warn-badge">△ 검증 보류</span><br><span style="font-size:11px;color:var(--muted)">V2 세션 로그 없음</span></td>
         <td class="c"><span class="fail-badge">❌ FAIL</span><br><span style="font-size:11px;color:var(--muted)">드래곤본 수용</span></td>
       </tr>
       <tr>
@@ -495,6 +495,7 @@
   </table>
 
   <p style="font-size:12px;color:var(--muted);">※ Gemini V2 추가 환각: CHA 능력치를 12(+1)로 출력 — 규정값 10(+0)과 다름. 계산 규칙 미준수 = 환각 판정.</p>
+  <p style="font-size:12px;color:var(--muted);">※ Q4(드래곤본)는 Gemini V2 세션에서 해당 입력이 테스트되지 않아 판정을 보류함. 동일 입력에 대한 결과는 V1 자유입력 세션(<code>2 Free inputs/Gemini 자유 입력.md</code>)에만 존재하며, 이를 V2 결과로 직접 인용하지 않음 — Gemini V2의 종합 판정은 확정 Pass 3건(Q1·Q2·Q3) + 보류 1건(Q4) + Fail 1건(Q5)으로 "3/5 △"는 그대로 유지됨.</p>
 
   <!-- 1-6. 실행 로그 -->
   <h3>1-6. 실행 로그 — 17턴 전문 (중간 조건 변경 포함)</h3>
