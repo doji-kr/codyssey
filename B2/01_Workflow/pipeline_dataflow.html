@@ -1,0 +1,291 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DATAFLOW · iHeartDogs Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --ink:#fff; --dim:#7a7a7a; --faint:#3a3a3a; --line:rgba(255,255,255,.26);
+    --mono:'Nanum Gothic Coding',monospace; --disp:'Nanum Myeongjo',serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 26px 40px}
+
+  /* header */
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+        border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:30px}
+  .eye{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--dim)}
+  h1{font-family:var(--disp);font-weight:800;font-size:33px;letter-spacing:.01em;margin:12px 0 0;line-height:1.04}
+  h1 .arr{color:var(--dim);font-weight:500;margin:0 .25em}
+  .sub{color:var(--dim);font-size:12.5px;margin-top:9px;max-width:46ch;line-height:1.6}
+  .meta{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-align:right;line-height:1.9}
+  .meta b{color:var(--ink);font-weight:500}
+
+  /* stage */
+  #stage{position:relative;width:100%}
+  .wire,.flow{position:absolute;inset:0;pointer-events:none}
+  .flow{z-index:5}
+  .node{position:absolute;background:#000;border:1px solid var(--line);z-index:2;display:flex;align-items:center;gap:15px;padding:13px 15px;
+        transition:box-shadow .25s ease, border-color .25s ease}
+  .node .chip{flex:0 0 auto;width:54px;height:54px;background:#000;border:1px solid var(--line);overflow:hidden;
+        transition:filter .14s ease}
+  .node .chip canvas{display:block;width:100%;height:100%}
+  .node .txt{min-width:0}
+  .node .no{font-size:10px;letter-spacing:.24em;color:var(--dim);font-weight:500}
+  .node .nm{font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.01em;line-height:1.12;margin:3px 0 6px;color:var(--ink)}
+  .node .d{font-size:11.5px;line-height:1.5;color:var(--dim)}
+  .node.cur{border-color:var(--ink)}
+  .node.cur .no{color:var(--ink)}
+  .node.react{box-shadow:0 0 0 1px #fff,0 0 24px rgba(255,255,255,.4);border-color:#fff}
+  .node.react .chip{filter:invert(1)}
+  .node.react .nm{color:#fff}
+
+  /* status */
+  .status{display:flex;align-items:center;gap:12px;margin-top:28px;border-top:1px solid var(--line);
+          padding-top:16px;font-size:12px;letter-spacing:.04em;flex-wrap:wrap}
+  .status .run{color:var(--ink);animation:blink 1.1s steps(2) infinite}
+  @keyframes blink{50%{opacity:.15}}
+  .status .si{color:var(--dim);font-weight:700}
+  .status .sn{color:var(--ink);font-weight:700;letter-spacing:.1em}
+  .status .sd{color:var(--dim)}
+  .status .sep{color:var(--faint)}
+  .legend{margin-left:auto;color:var(--dim);font-size:10.5px;letter-spacing:.06em}
+
+  @media(max-width:560px){
+    h1{font-size:22px}.meta{display:none}.wrap{padding:24px 16px 32px}
+    .node .nm{font-size:16px}.node .d{font-size:11px}
+  }
+  @media(prefers-reduced-motion:reduce){ .status .run{animation:none} }
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <div>
+      <div class="eye">N8N · Dataflow</div>
+      <h1>iHeartDogs RSS <span class="arr">→</span> NocoDB</h1>
+      <div class="sub">데이터가 12개 노드를 통과하며 거치는 처리 단계. 빛 점이 노드에 닿을 때 그 타일의 패턴이 반응한다 — 거기서 처리가 일어난다는 뜻이다.</div>
+    </div>
+    <div class="meta"><b>12</b> Nodes<br><b>1</b> Stream<br>B / W</div>
+  </div>
+
+  <div id="stage">
+    <canvas class="wire" id="wire"></canvas>
+    <canvas class="flow" id="flow"></canvas>
+  </div>
+
+  <div class="status">
+    <span class="run">▸</span>
+    <span class="si" id="stIdx">01</span>
+    <span class="sn" id="stName">RSS FEED</span>
+    <span class="sep">—</span>
+    <span class="sd" id="stDesc">피드에서 새 글을 가져온다</span>
+    <span class="legend">점이 노드를 통과 = 처리 진행</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  var NODES = [
+    {nm:'RSS FEED',     d:'피드에서 새 글을 가져온다',     t:0},
+    {nm:'FILTER',       d:'반려견 키워드 글만 통과',       t:1},
+    {nm:'SELECT TOPIC', d:'정한 토픽의 글만 통과',         t:2},
+    {nm:'DEDUP',        d:'전에 본 글을 걸러낸다',         t:3},
+    {nm:'DB CHECK',     d:'DB에 이미 있는지 조회',         t:4},
+    {nm:'IS NEW?',      d:'새 글만 다음으로 보낸다',       t:5},
+    {nm:'TRANSLATE',    d:'영문 글을 한국어로 요약',       t:6},
+    {nm:'PARSE',        d:'응답을 깔끔한 데이터로 정리',   t:7},
+    {nm:'THUMBNAIL',    d:'표지 이미지를 생성',           t:8},
+    {nm:'EXTRACT',      d:'이미지를 파일로 변환',         t:9},
+    {nm:'UPLOAD',       d:'이미지를 저장소에 올린다',     t:10},
+    {nm:'CREATE',       d:'DB에 새 레코드를 만든다',      t:11}
+  ];
+  var N = NODES.length;
+  var CHIP = 54;
+
+  // ---- seeded rng ----
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+  // ---- pattern generators (black bg, white marks; drawn in CSS px) ----
+  var GENS = [
+    function pixels(c,W,H,r){var s=Math.max(6,W/24);for(var y=0;y<H;y+=s)for(var x=0;x<W;x+=s)if(r()<0.5)c.fillRect(x,y,s+0.7,s+0.7);},
+    function vbars(c,W,H,r){var x=0;while(x<W){var w=2+r()*14;if(r()<0.5)c.fillRect(x,0,w,H);x+=w;}},
+    function hlines(c,W,H,r){var y=0;while(y<H){var h=1+r()*7;if(r()<0.55)c.fillRect(0,y,W,h);y+=h+1+r()*3;}},
+    function diag(c,W,H,r){c.save();c.translate(W/2,H/2);c.rotate(Math.PI/4);var L=Math.hypot(W,H);c.translate(-L/2,-L/2);var x=0;while(x<L){var w=3+r()*10;if(r()<0.5)c.fillRect(x,0,w,L);x+=w;}c.restore();},
+    function dots(c,W,H,r){var s=Math.max(9,W/18);for(var y=s/2;y<H;y+=s)for(var x=s/2;x<W;x+=s){var rad=(s/2)*(0.22+r()*0.72);c.beginPath();c.arc(x,y,rad,0,7);c.fill();}},
+    function wave(c,W,H,r){c.lineWidth=1.5;var L=Math.floor(6+r()*6);for(var i=0;i<L;i++){var yo=(i+0.5)*H/L,amp=H/L*(0.3+r()*0.9),fr=(1+r()*3)*Math.PI*2/W,ph=r()*7;c.beginPath();for(var x=0;x<=W;x+=3){var y=yo+Math.sin(x*fr+ph)*amp;x===0?c.moveTo(x,y):c.lineTo(x,y);}c.stroke();}},
+    function chevron(c,W,H,r){var rows=Math.floor(5+r()*5),rh=H/rows,step=Math.max(8,W/16);for(var ri=0;ri<rows;ri++){if(r()<0.3)continue;var y=ri*rh;c.lineWidth=2+r()*3;c.beginPath();var up=true;for(var x=0;x<=W;x+=step){c.lineTo(x,y+(up?rh*0.15:rh*0.85));up=!up;}c.stroke();}},
+    function checker(c,W,H,r){var s=Math.max(8,W/14);for(var y=0;y<H;y+=s)for(var x=0;x<W;x+=s){var base=(((x/s)|0)+((y/s)|0))%2===0;var on=r()<0.85?base:!base;if(on)c.fillRect(x,y,s+0.7,s+0.7);}},
+    function moire(c,W,H,r){function grat(gap,ang){c.save();c.translate(W/2,H/2);c.rotate(ang);c.translate(-W,-H);for(var x=0;x<2*W;x+=gap)c.fillRect(x,0,gap*0.5,2*H);c.restore();}c.globalCompositeOperation='source-over';grat(4+r()*3,(r()-0.5)*0.35);c.globalCompositeOperation='difference';grat(4+r()*3,(r()-0.5)*0.35+0.16);c.globalCompositeOperation='source-over';},
+    function bricks(c,W,H,r){var bh=Math.max(9,H/9),y=0,row=0;while(y<H){var bw=bh*2,x=(row%2)?-bw/2:0;for(;x<W;x+=bw)if(r()<0.5)c.fillRect(x+1,y+1,bw-2,bh-2);y+=bh;row++;}},
+    function dashes(c,W,H,r){var n=Math.floor(W*H/620);for(var i=0;i<n;i++){var x=r()*W,y=r()*H,w=3+r()*16;c.fillRect(x,y,w,1.5+r()*1.5);}},
+    function maze(c,W,H,r){var s=Math.max(10,W/14);c.lineWidth=2;for(var y=0;y<H;y+=s)for(var x=0;x<W;x+=s){c.beginPath();if(r()<0.5){c.moveTo(x,y);c.lineTo(x+s,y+s);}else{c.moveTo(x+s,y);c.lineTo(x,y+s);}c.stroke();}}
+  ];
+
+  var stage=document.getElementById('stage');
+  var wire=document.getElementById('wire'), flow=document.getElementById('flow');
+  var wctx=wire.getContext('2d'), fctx=flow.getContext('2d');
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+
+  // build node elements once
+  NODES.forEach(function(nd,i){
+    var el=document.createElement('div'); el.className='node';
+    var chip=document.createElement('div'); chip.className='chip';
+    var cv=document.createElement('canvas'); chip.appendChild(cv);
+    var txt=document.createElement('div'); txt.className='txt';
+    txt.innerHTML='<div class="no">'+String(i+1).padStart(2,'0')+'</div>'+
+                  '<div class="nm">'+nd.nm+'</div>'+
+                  '<div class="d">'+nd.d+'</div>';
+    el.appendChild(chip); el.appendChild(txt);
+    stage.appendChild(el);
+    nd.el=el; nd.cv=cv; nd.cx=cv.getContext('2d'); nd.seed=(i*2654435761)>>>0;
+  });
+
+  var centers=[], cardW=0, cardH=0;
+
+  function layout(){
+    var W=stage.clientWidth;
+    var cols = W>=980?4 : W>=640?3 : 2;
+    var gapX = Math.max(26, W*0.045);
+    var cellW = W/cols;
+    cardW = cellW - gapX;
+    cardH = (W>=640)?96:88;
+    var rowH = cardH + 46;
+    var rows = Math.ceil(N/cols);
+    var totalH = rows*rowH;
+    stage.style.height = totalH+'px';
+
+    centers=[];
+    for(var i=0;i<N;i++){
+      var row=Math.floor(i/cols), pos=i%cols;
+      var col=(row%2===0)?pos:(cols-1-pos);
+      var cx=col*cellW + cellW/2;
+      var cy=row*rowH + rowH/2;
+      centers.push({x:cx,y:cy});
+      var nd=NODES[i];
+      nd.el.style.width=cardW+'px'; nd.el.style.height=cardH+'px';
+      nd.el.style.left=(cx-cardW/2)+'px'; nd.el.style.top=(cy-cardH/2)+'px';
+      // size + render small pattern chip
+      var cv=nd.cv; cv.width=Math.round(CHIP*dpr); cv.height=Math.round(CHIP*dpr);
+      renderPattern(nd);
+    }
+    // overlay canvases
+    [wire,flow].forEach(function(cnv){cnv.width=Math.round(W*dpr);cnv.height=Math.round(totalH*dpr);cnv.style.width=W+'px';cnv.style.height=totalH+'px';});
+    drawWires();
+  }
+
+  function renderPattern(nd){
+    var c=nd.cx, W=CHIP, H=CHIP;
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.globalCompositeOperation='source-over';
+    c.fillStyle='#000'; c.fillRect(0,0,W,H);
+    c.fillStyle='#fff'; c.strokeStyle='#fff';
+    GENS[nd.t](c,W,H,mulberry32(nd.seed));
+  }
+
+  function drawWires(){
+    wctx.setTransform(dpr,0,0,dpr,0,0);
+    wctx.clearRect(0,0,wire.width,wire.height);
+    wctx.strokeStyle='rgba(255,255,255,.42)'; wctx.lineWidth=1.4;
+    wctx.setLineDash([2,4]);
+    for(var i=0;i<centers.length-1;i++){
+      wctx.beginPath(); wctx.moveTo(centers[i].x,centers[i].y); wctx.lineTo(centers[i+1].x,centers[i+1].y); wctx.stroke();
+    }
+    wctx.setLineDash([]);
+    // tiny port ticks at each center
+    wctx.fillStyle='rgba(255,255,255,.5)';
+    for(var j=0;j<centers.length;j++){ wctx.fillRect(centers[j].x-1.5,centers[j].y-1.5,3,3); }
+  }
+
+  // ---- reactions ----
+  function react(i){
+    var nd=NODES[i];
+    nd.seed=(nd.seed*1664525+1013904223+ (Date.now()&0xffff))>>>0;
+    renderPattern(nd);
+    nd.el.classList.add('react');
+    setTimeout(function(){nd.el.classList.remove('react');},260);
+    NODES.forEach(function(o,k){o.el.classList.toggle('cur',k===i);});
+    setStatus(i);
+  }
+  function setStatus(i){
+    document.getElementById('stIdx').textContent=String(i+1).padStart(2,'0');
+    document.getElementById('stName').textContent=NODES[i].nm;
+    document.getElementById('stDesc').textContent=NODES[i].d;
+  }
+
+  // ---- flow animation ----
+  var cur=0, phase='dwell', timer=0, moveT=0, segDur=0, fromP, toP, moveTo=0;
+  var dotPos={x:0,y:0}, dotAlpha=1, trail=[];
+  var DWELL=520, SPEED=300; // px/s
+  var last=0;
+
+  function ease(k){return k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;}
+  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+
+  function startMove(a,b){fromP=centers[a];toP=centers[b];moveTo=b;segDur=Math.max(300,dist(fromP,toP)/SPEED*1000);moveT=0;phase='move';}
+
+  function frame(now){
+    if(!last)last=now; var dt=now-last; last=now;
+    if(dt>120)dt=120;
+
+    if(phase==='dwell'){
+      timer-=dt;
+      if(timer<=0){ if(cur>=N-1){phase='return';timer=460;} else {startMove(cur,cur+1);} }
+      dotPos=centers[cur]; dotAlpha=1;
+    } else if(phase==='move'){
+      moveT+=dt; var k=Math.min(1,moveT/segDur); var e=ease(k);
+      dotPos={x:fromP.x+(toP.x-fromP.x)*e, y:fromP.y+(toP.y-fromP.y)*e}; dotAlpha=1;
+      trail.push({x:dotPos.x,y:dotPos.y,a:1});
+      if(k>=1){ cur=moveTo; react(cur); phase='dwell'; timer=DWELL; }
+    } else if(phase==='return'){
+      timer-=dt; dotAlpha=Math.max(0,timer/460);
+      if(timer<=0){ cur=0; dotPos=centers[0]; dotAlpha=1; trail=[]; react(0); phase='dwell'; timer=DWELL; }
+    }
+
+    // age trail
+    for(var i=trail.length-1;i>=0;i--){ trail[i].a-=dt/520; if(trail[i].a<=0)trail.splice(i,1); }
+    if(trail.length>60)trail.splice(0,trail.length-60);
+
+    drawDot();
+    requestAnimationFrame(frame);
+  }
+
+  function drawDot(){
+    fctx.setTransform(dpr,0,0,dpr,0,0);
+    fctx.clearRect(0,0,flow.width,flow.height);
+    // trail
+    for(var i=0;i<trail.length;i++){
+      var t=trail[i]; if(t.a<=0)continue;
+      fctx.globalAlpha=t.a*0.5; fctx.fillStyle='#fff';
+      fctx.beginPath(); fctx.arc(t.x,t.y,1.4+t.a*1.6,0,7); fctx.fill();
+    }
+    // main dot with glow
+    fctx.globalAlpha=dotAlpha;
+    fctx.shadowColor='rgba(255,255,255,.9)'; fctx.shadowBlur=14;
+    fctx.fillStyle='#fff';
+    fctx.beginPath(); fctx.arc(dotPos.x,dotPos.y,4.2,0,7); fctx.fill();
+    fctx.shadowBlur=0; fctx.globalAlpha=1;
+  }
+
+  // ---- boot ----
+  function boot(){
+    layout();
+    cur=0; react(0); setStatus(0);
+    if(REDUCED){ dotPos=centers[0]; drawDot(); return; }
+    phase='dwell'; timer=DWELL; last=0;
+    requestAnimationFrame(frame);
+  }
+  boot();
+
+  var rt;
+  window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){
+    layout();
+    if(REDUCED){dotPos=centers[cur];drawDot();}
+  },160);});
+})();
+</script>
