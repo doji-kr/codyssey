@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n · Make · Zapier — 자동화 툴 비교 데이터시트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15171C;
+    --panel:#1D2027;
+    --panel-2:#242833;
+    --line:#333A47;
+    --line-soft:#272C36;
+    --text:#EAE5D7;
+    --muted:#9AA1AE;
+    --muted-2:#6E7682;
+    --zapier:#FF4F00;
+    --make:#B85CF6;
+    --n8n:#EA4B71;
+    --gold:#D9B26A;
+    --ok:#5CC8A0;
+    --display:"Space Grotesk",sans-serif;
+    --mono:"JetBrains Mono",monospace;
+    --kr:"Noto Sans KR",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--kr);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:1px solid var(--line);
+    padding:64px 0 0;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--muted-2);
+    margin-bottom:22px;
+  }
+  h1{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(34px,6vw,62px);
+    line-height:1.02;
+    letter-spacing:-.02em;
+  }
+  h1 .sep{color:var(--muted-2);font-weight:400}
+  .subtitle{
+    margin-top:18px;
+    max-width:620px;
+    color:var(--muted);
+    font-size:15px;
+  }
+  /* oscilloscope signature */
+  .scope{
+    margin:38px 0 0;
+    height:84px;
+    width:100%;
+    display:block;
+  }
+  .scope-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    padding:14px 0 28px;
+    border-top:1px solid var(--line-soft);
+    margin-top:-2px;
+  }
+  .scope-legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:50%}
+
+  /* ---------- tool chips ---------- */
+  .identities{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    padding:40px 0;
+  }
+  .id-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-top:3px solid var(--accent);
+    padding:22px 20px;
+    border-radius:4px;
+  }
+  .id-card .name{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:22px;
+    color:var(--accent);
+    letter-spacing:-.01em;
+  }
+  .id-card .role{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--muted-2);
+    margin:6px 0 12px;
+  }
+  .id-card .line{font-size:13.5px;color:var(--muted)}
+
+  /* ---------- section ---------- */
+  section{padding:54px 0;border-top:1px solid var(--line-soft)}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:30px;flex-wrap:wrap}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--gold);
+    letter-spacing:.1em;
+  }
+  h2{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(22px,3.4vw,30px);
+    letter-spacing:-.01em;
+  }
+  .sec-note{font-size:13px;color:var(--muted-2);margin-left:auto;font-family:var(--mono)}
+
+  /* ---------- matrix ---------- */
+  .matrix{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .mrow{display:grid;grid-template-columns:200px 1fr 1fr 1fr;border-top:1px solid var(--line-soft)}
+  .mrow:first-child{border-top:none}
+  .mrow.head{position:sticky;top:0;background:var(--panel-2);z-index:5}
+  .mrow.head>div{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:14px 16px;
+    color:var(--muted);
+  }
+  .mrow.head .t{font-weight:700;font-size:14px;letter-spacing:0;text-transform:none}
+  .mrow.head .t.z{color:var(--zapier)}
+  .mrow.head .t.m{color:var(--make)}
+  .mrow.head .t.n{color:var(--n8n)}
+  .axis{
+    background:var(--panel);
+    padding:16px;
+    border-right:1px solid var(--line-soft);
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    justify-content:center;
+  }
+  .axis .a-name{font-weight:700;font-size:14px;color:var(--text)}
+  .axis .a-sub{font-family:var(--mono);font-size:10px;color:var(--muted-2);letter-spacing:.04em}
+  .cell{
+    padding:16px;
+    font-size:13px;
+    color:var(--muted);
+    border-right:1px solid var(--line-soft);
+    position:relative;
+  }
+  .cell:last-child{border-right:none}
+  .cell.win{color:var(--text);background:linear-gradient(180deg,rgba(217,178,106,.06),transparent)}
+  .cell.win::before{
+    content:"▲ 우위";
+    position:absolute;
+    top:8px;right:10px;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.1em;
+    color:var(--gold);
+    opacity:.85;
+  }
+  .cell strong{color:var(--text);font-weight:700}
+  .cell .big{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:15px;
+    display:block;
+    margin-bottom:3px;
+  }
+  .cell.z .big{color:var(--zapier)}
+  .cell.m .big{color:var(--make)}
+  .cell.n .big{color:var(--n8n)}
+
+  /* ---------- pros / cons ---------- */
+  .pc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .pc{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .pc-top{padding:18px 20px;border-bottom:1px solid var(--line);background:var(--accent-bg)}
+  .pc-top .nm{font-family:var(--display);font-weight:700;font-size:20px;color:var(--accent)}
+  .pc-top .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-top:4px}
+  .pc-body{padding:18px 20px}
+  .pc-body h4{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  .pc-body h4.pro{color:var(--ok)}
+  .pc-body h4.con{color:#E8745C;margin-top:20px}
+  .pc-body ul{list-style:none}
+  .pc-body li{
+    font-size:13px;
+    color:var(--muted);
+    padding-left:18px;
+    position:relative;
+    margin-bottom:9px;
+    line-height:1.55;
+  }
+  .pc-body li::before{position:absolute;left:0;top:0;font-family:var(--mono);font-size:12px}
+  .pc-body .pro li::before{content:"+";color:var(--ok)}
+  .pc-body .con li::before{content:"−";color:#E8745C}
+
+  /* ---------- verdict ---------- */
+  .verdicts{display:flex;flex-direction:column;gap:14px}
+  .v{
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:20px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:4px;
+    padding:20px 22px;
+  }
+  .v .v-when{font-family:var(--display);font-weight:700;font-size:16px;color:var(--accent);align-self:start}
+  .v .v-body{font-size:14px;color:var(--muted)}
+  .v .v-body strong{color:var(--text)}
+
+  .closing{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:28px 30px;
+    margin-top:30px;
+  }
+  .closing h3{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:18px;
+    margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .closing h3::before{content:"";width:18px;height:2px;background:var(--gold)}
+  .closing p{font-size:14px;color:var(--muted);margin-bottom:12px}
+  .closing p:last-child{margin-bottom:0}
+  .closing strong{color:var(--text)}
+  .hl{color:var(--gold)}
+
+  /* cost callout */
+  .cost{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:24px;
+  }
+  .cost-c{background:var(--panel);padding:22px 20px;text-align:center}
+  .cost-c .lab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2)}
+  .cost-c .val{font-family:var(--display);font-weight:700;font-size:28px;margin:8px 0 2px}
+  .cost-c.z .val{color:var(--zapier)}
+  .cost-c.m .val{color:var(--make)}
+  .cost-c.n .val{color:var(--n8n)}
+  .cost-c .sub{font-size:11px;color:var(--muted-2);font-family:var(--mono)}
+  .cost-cap{font-size:12px;color:var(--muted-2);margin-top:12px;font-family:var(--mono);text-align:center}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:32px 0 60px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted-2);
+    line-height:1.8;
+  }
+  footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  @media (max-width:860px){
+    .identities{grid-template-columns:1fr}
+    .pc-grid{grid-template-columns:1fr}
+    .mrow,.mrow.head{grid-template-columns:120px 1fr 1fr 1fr}
+    .axis{padding:12px}
+    .cell{padding:12px;font-size:12px}
+    .cell.win::before{position:static;display:block;margin-bottom:4px}
+    .v{grid-template-columns:1fr;gap:8px}
+  }
+  @media (max-width:560px){
+    .mrow,.mrow.head{grid-template-columns:1fr;gap:0}
+    .mrow .axis{border-right:none;border-bottom:1px solid var(--line)}
+    .mrow .cell{border-right:none;border-bottom:1px solid var(--line-soft)}
+    .mrow.head{display:none}
+    .cost{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- export toolbar ---------- */
+  .toolbar{
+    position:fixed;
+    top:18px;right:18px;
+    display:flex;
+    gap:8px;
+    z-index:50;
+  }
+  .toolbar button{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--text);
+    background:rgba(29,32,39,.86);
+    backdrop-filter:blur(8px);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:9px 14px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .toolbar button:hover{border-color:var(--gold);color:var(--gold)}
+  .toolbar button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .toolbar button svg{width:13px;height:13px;flex-shrink:0}
+
+  /* ---------- print / PDF ---------- */
+  @media print{
+    @page{margin:14mm 12mm}
+    :root{
+      --ink:#fff;--panel:#fff;--panel-2:#faf9f6;
+      --line:#cfcabc;--line-soft:#e3ddcf;
+      --text:#1a1a1a;--muted:#3d3d3d;--muted-2:#6a6a6a;
+    }
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    body{background:#fff;color:#1a1a1a}
+    .toolbar{display:none!important}
+    .reveal{opacity:1!important;transform:none!important}
+    header{padding-top:0;border-color:#cfcabc}
+    .subtitle,.id-card .line,.cell,.pc-body li,.v-body,.closing p,.sec-note{color:#3d3d3d}
+    .id-card,.pc,.v,.closing,.cost,.matrix,.cost-c{box-shadow:none}
+    .id-card{background:#fff}
+    .cell.win{background:#fbf6ea}
+    .mrow.head{background:#f3efe4;position:static}
+    .axis{background:#faf9f6}
+    .closing{background:#faf9f6}
+    .scope{height:64px}
+    /* keep blocks intact across page breaks */
+    .mrow,.pc,.v,.cost,.id-card,.closing{break-inside:avoid;page-break-inside:avoid}
+    section{break-inside:auto;border-color:#e3ddcf}
+    .sec-head{break-after:avoid;page-break-after:avoid}
+    h1,h2,h3,h4{break-after:avoid}
+    .matrix{break-before:auto}
+    footer{border-color:#cfcabc;color:#6a6a6a}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="btn-pdf" type="button" aria-label="PDF로 저장">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    PDF로 저장
+  </button>
+  <button id="btn-md" type="button" aria-label="Markdown 다운로드">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Markdown
+  </button>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Codyssey · No-Code Automation · 비교 데이터시트</div>
+    <h1>n8n <span class="sep">/</span> Make <span class="sep">/</span> Zapier</h1>
+    <p class="subtitle">같은 일을 하는 세 도구. 하지만 "어떻게" 하느냐에서 설계 철학이 갈린다. 9개 축으로 각 도구의 본질을 해부하고, 장단점과 적합 상황을 평가한다.</p>
+
+    <!-- signature: three billing models as waveforms -->
+    <svg class="scope" viewBox="0 0 1000 84" preserveAspectRatio="none" aria-hidden="true">
+      <!-- n8n: one pulse per cycle (execution) -->
+      <path id="wn" fill="none" stroke="#EA4B71" stroke-width="1.6" opacity="0.9"
+        d="M0,62 L120,62 L130,20 L150,20 L160,62 L370,62 L380,20 L400,20 L410,62 L620,62 L630,20 L650,20 L660,62 L870,62 L880,20 L900,20 L910,62 L1000,62"/>
+      <!-- make: medium density (operations) -->
+      <path id="wm" fill="none" stroke="#B85CF6" stroke-width="1.4" opacity="0.75"
+        d="M0,46 L40,46 L48,30 L64,30 L72,46 L120,46 L128,30 L144,30 L152,46 L210,46 L218,30 L234,30 L242,46 L300,46 L308,30 L324,30 L332,46 L400,46 L408,30 L424,30 L432,46 L520,46 L528,30 L544,30 L552,46 L640,46 L648,30 L664,30 L672,46 L760,46 L768,30 L784,30 L792,46 L900,46 L908,30 L924,30 L932,46 L1000,46"/>
+      <!-- zapier: dense spikes (tasks) -->
+      <path id="wz" fill="none" stroke="#FF4F00" stroke-width="1.2" opacity="0.6"
+        d="M0,32 L18,32 L24,14 L36,14 L42,32 L70,32 L76,14 L88,14 L94,32 L122,32 L128,14 L140,14 L146,32 L174,32 L180,14 L192,14 L198,32 L226,32 L232,14 L244,14 L250,32 L278,32 L284,14 L296,14 L302,32 L330,32 L336,14 L348,14 L354,32 L382,32 L388,14 L400,14 L406,32 L434,32 L440,14 L452,14 L458,32 L486,32 L492,14 L504,14 L510,32 L538,32 L544,14 L556,14 L562,32 L590,32 L596,14 L608,14 L614,32 L642,32 L648,14 L660,14 L666,32 L694,32 L700,14 L712,14 L718,32 L746,32 L752,14 L764,14 L770,32 L798,32 L804,14 L816,14 L822,32 L850,32 L856,14 L868,14 L874,32 L902,32 L908,14 L920,14 L926,32 L954,32 L960,14 L972,14 L978,32 L1000,32"/>
+    </svg>
+    <div class="scope-legend">
+      <span><span class="dot" style="background:#FF4F00"></span> Zapier — 액션마다 과금 (task)</span>
+      <span><span class="dot" style="background:#B85CF6"></span> Make — 모듈마다 과금 (operation)</span>
+      <span><span class="dot" style="background:#EA4B71"></span> n8n — 워크플로 1회 과금 (execution)</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- identities -->
+  <div class="identities">
+    <div class="id-card reveal" style="--accent:var(--zapier)">
+      <div class="name">Zapier</div>
+      <div class="role">Breadth · Ease-first</div>
+      <div class="line">폭과 속도를 위해 깊이·비용효율을 판다. 8,000+ 앱을 가장 빠르게 연결.</div>
+    </div>
+    <div class="id-card reveal" style="--accent:var(--make)">
+      <div class="name">Make</div>
+      <div class="role">Visual · Mid-tier</div>
+      <div class="line">시각적 명료성을 위해 약간의 복잡도를 산다. 데이터 흐름이 눈에 보인다.</div>
+    </div>
+    <div class="id-card reveal" style="--accent:var(--n8n)">
+      <div class="name">n8n</div>
+      <div class="role">Control · Code-native</div>
+      <div class="line">통제·확장성을 위해 진입 비용을 떠안는다. self-host + 코드 노드 + AI 네이티브.</div>
+    </div>
+  </div>
+
+  <!-- matrix -->
+  <section id="matrix">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>9개 축 비교 매트릭스</h2>
+      <span class="sec-note">▲ = 해당 축 우위</span>
+    </div>
+
+    <div class="matrix">
+      <div class="mrow head">
+        <div>비교 항목</div>
+        <div class="t z">Zapier</div>
+        <div class="t m">Make</div>
+        <div class="t n">n8n</div>
+      </div>
+
+      <!-- UI/UX -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">UI / UX</span><span class="a-sub">interface paradigm</span></div>
+        <div class="cell z win">선형 단계형 빌더. 카테고리 최고의 깔끔한 인터페이스, 가장 직관적.</div>
+        <div class="cell m">캔버스형 플로우차트. 데이터 흐름을 시각적으로 추적 — 세 도구 중 가장 시각적.</div>
+        <div class="cell n">노드 그래프 에디터. 강력하지만 기술적, 화면 밀도가 높음.</div>
+      </div>
+
+      <!-- 설정 난이도 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">설정 난이도</span><span class="a-sub">time-to-value</span></div>
+        <div class="cell z win">가장 낮음. 첫 워크플로까지 30분 미만, 인프라 셋업 없음.</div>
+        <div class="cell m">중간. router·iterator를 쓰기 시작하면 곡선이 가팔라짐.</div>
+        <div class="cell n">가장 높음. 클라우드는 무난하나 self-host는 서버·Docker·운영 지식 필요.</div>
+      </div>
+
+      <!-- 연동 서비스 범위 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">연동 서비스 범위</span><span class="a-sub">integrations</span></div>
+        <div class="cell z win"><span class="big">8,000+</span>사전 통합 압도적 1위. "있는 앱이면 거의 다 연결".</div>
+        <div class="cell m"><span class="big">~3,000</span>핵심 SaaS 대부분 커버, 중간 규모.</div>
+        <div class="cell n"><span class="big">~1,100</span>가장 적음. 대신 HTTP/코드 노드로 "뭐든" 직접 제작.</div>
+      </div>
+
+      <!-- 무료 플랜 범위 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">무료 플랜 범위</span><span class="a-sub">free tier</span></div>
+        <div class="cell z">월 100 task, 2-스텝 워크플로 한정. 체험용 수준.</div>
+        <div class="cell m">월 1,000 operation, 활성 시나리오 2개. 셋 중 가장 후한 클라우드 무료.</div>
+        <div class="cell n win">self-host 시 <strong>실행 무제한 · 무료</strong>(커뮤니티 에디션, 거의 전 기능).</div>
+      </div>
+
+      <!-- 실행 로그 확인 방식 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">실행 로그 확인</span><span class="a-sub">observability</span></div>
+        <div class="cell z">Zap History — task 단위 성공/실패 기록. 단순·명확.</div>
+        <div class="cell m">History 탭 — 모듈마다 통과한 데이터 번들을 시각적으로 열람, 디버깅 가시성 최고.</div>
+        <div class="cell n win">Executions 탭 — 노드별 입출력 전체 확인, 특정 실행에서 재실행. self-host는 로그 보존을 직접 통제.</div>
+      </div>
+
+      <!-- 과금 단위 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">과금 단위</span><span class="a-sub">billing atom</span></div>
+        <div class="cell z">액션마다 task. 복잡도·볼륨이 곧 비용 — 멀티스텝에 구조적으로 불리.</div>
+        <div class="cell m">모듈마다 operation. Zapier보다 단가는 싸지만 폴링이 쿼터를 빠르게 소진.</div>
+        <div class="cell n win">워크플로 1회 = 1 execution. 스텝 수 무관 → 복잡할수록 압도적 저렴.</div>
+      </div>
+
+      <!-- 데이터 주권 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">데이터 주권 / 호스팅</span><span class="a-sub">data locality</span></div>
+        <div class="cell z">완전 호스팅(SaaS). 데이터가 반드시 클라우드 경유. 보안은 알아서 처리.</div>
+        <div class="cell m">완전 호스팅(SaaS). 인프라·컴플라이언스 자동, 통제권은 양도.</div>
+        <div class="cell n win">오픈소스 self-host 가능. 데이터 위치·암호화·접근·업데이트를 직접 결정.</div>
+      </div>
+
+      <!-- 제어 흐름 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">제어 흐름</span><span class="a-sub">control flow</span></div>
+        <div class="cell z">선형. 비기술자 친화적이나 복잡한 분기·병렬에 약함.</div>
+        <div class="cell m win">비주얼 분기 + iterator. 리스트 배치 처리·다중 경로를 우아하게.</div>
+        <div class="cell n win">노드 그래프 + JS/Python 코드. 표현력 최고, API 통제 가장 강함.</div>
+      </div>
+
+      <!-- AI 에이전트 -->
+      <div class="mrow reveal">
+        <div class="axis"><span class="a-name">AI 에이전트</span><span class="a-sub">2025–26 분기점</span></div>
+        <div class="cell z">Agents·Copilot 보유. 단 AI를 "호출할 또 하나의 API"로 취급.</div>
+        <div class="cell m">Make AI Agents(2026 GA). 결정 과정을 보여주는 reasoning 패널.</div>
+        <div class="cell n win">네이티브 LangChain·70+ AI 노드·영속 메모리. 로컬 LLM(Ollama)/RAG까지. 셋 중 선두.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- pros / cons -->
+  <section id="proscons">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>각 도구의 장단점</h2>
+    </div>
+    <div class="pc-grid">
+
+      <div class="pc reveal" style="--accent:var(--zapier);--accent-bg:rgba(255,79,0,.07)">
+        <div class="pc-top"><div class="nm">Zapier</div><div class="tag">The Connector</div></div>
+        <div class="pc-body">
+          <h4 class="pro">장점</h4>
+          <ul class="pro">
+            <li>업계 최대 통합 라이브러리(8,000+) — 거의 모든 SaaS 커버</li>
+            <li>가장 낮은 진입 장벽, 가장 빠른 time-to-value</li>
+            <li>가장 깔끔한 UI, 인프라·유지보수 부담 없음</li>
+          </ul>
+          <h4 class="con">단점</h4>
+          <ul class="con">
+            <li>스케일에서 가장 비쌈 — task 과금이 복잡도를 처벌</li>
+            <li>선형 구조라 복잡한 분기·반복에 취약</li>
+            <li>깊은 커스터마이징·코드 제어가 제한적</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pc reveal" style="--accent:var(--make);--accent-bg:rgba(184,92,246,.08)">
+        <div class="pc-top"><div class="nm">Make</div><div class="tag">The Visual Builder</div></div>
+        <div class="pc-body">
+          <h4 class="pro">장점</h4>
+          <ul class="pro">
+            <li>세 도구 중 디버깅 가시성 최고 — 데이터 흐름이 보임</li>
+            <li>가성비 좋은 중간 티어 + 후한 무료(1,000 ops)</li>
+            <li>router·iterator로 강력한 분기·배치 처리</li>
+          </ul>
+          <h4 class="con">단점</h4>
+          <ul class="con">
+            <li>operation 과금 — 매분 폴링이면 월 ~43,000 ops 선소진</li>
+            <li>Zapier보다 적은 통합(~3,000)</li>
+            <li>self-host 불가, router 도입 시 곡선 가팔라짐</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pc reveal" style="--accent:var(--n8n);--accent-bg:rgba(234,75,113,.08)">
+        <div class="pc-top"><div class="nm">n8n</div><div class="tag">The Engine</div></div>
+        <div class="pc-body">
+          <h4 class="pro">장점</h4>
+          <ul class="pro">
+            <li>스케일에서 가장 저렴 — execution 과금, self-host는 무제한 무료</li>
+            <li>self-host = 완전한 데이터 주권</li>
+            <li>JS/Python 코드 노드 — 가장 깊은 커스터마이징</li>
+            <li>AI 네이티브(LangChain·에이전트·로컬 LLM)</li>
+          </ul>
+          <h4 class="con">단점</h4>
+          <ul class="con">
+            <li>가장 가파른 학습 곡선</li>
+            <li>사전 통합 가장 적음 — HTTP 노드 의존</li>
+            <li>self-host 시 인프라·DevOps 책임을 직접 부담</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- cost callout -->
+    <div class="cost reveal">
+      <div class="cost-c z"><div class="lab">Zapier</div><div class="val">$250~400+</div><div class="sub">월 / 80,000 task</div></div>
+      <div class="cost-c m"><div class="lab">Make</div><div class="val">$150~200</div><div class="sub">월 / 80,000 ops</div></div>
+      <div class="cost-c n"><div class="lab">n8n Cloud</div><div class="val">$50</div><div class="sub">월 / 10,000 exec</div></div>
+    </div>
+    <div class="cost-cap">// 8-스텝 워크플로 × 10,000회/월 동일 작업 기준 — 복잡할수록 격차가 벌어진다 (self-host n8n은 서버비만)</div>
+  </section>
+
+  <!-- verdict -->
+  <section id="verdict">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>어떤 상황에 적합한가 — 평가 의견</h2>
+    </div>
+
+    <div class="verdicts">
+      <div class="v reveal" style="--accent:var(--zapier)">
+        <div class="v-when">Zapier 선택</div>
+        <div class="v-body"><strong>비기술 팀이 빠르게 붙여야 할 때.</strong> 워크플로가 단순·직관적이고, 볼륨이 크지 않으며, 비용보다 속도와 편의가 우선일 때. 마케팅·세일즈 운영팀이 코드 없이 30분 안에 결과를 내야 하는 시나리오에 최적.</div>
+      </div>
+      <div class="v reveal" style="--accent:var(--make)">
+        <div class="v-when">Make 선택</div>
+        <div class="v-body"><strong>시각적 사고형 + 중간 복잡도일 때.</strong> 분기 로직이 필요하지만 self-host의 운영 부담은 지기 싫고, Zapier보다 저렴한 가성비를 원할 때. "데이터가 어떻게 흐르는지 눈으로 보며 디버깅"하는 작업 방식에 잘 맞는다.</div>
+      </div>
+      <div class="v reveal" style="--accent:var(--n8n)">
+        <div class="v-when">n8n 선택</div>
+        <div class="v-body"><strong>기술 리소스가 있고 통제가 필요할 때.</strong> 대용량·복잡 파이프라인, 데이터 프라이버시가 최우선, AI 에이전트/로컬 LLM 연동, self-host 환경. 학습 곡선이라는 선불 비용이 스케일에서 비용·자유로 회수된다.</div>
+      </div>
+    </div>
+
+    <div class="closing reveal">
+      <h3>종합 의견</h3>
+      <p>시장 일반론으로는 <strong>"상황별 정답이 다르다"</strong>가 맞다. 셋의 차이는 우열이 아니라 <span class="hl">최적화 대상의 선택</span>이기 때문이다 — Zapier는 폭, Make는 시각적 명료성, n8n은 통제. 각자가 무언가를 얻기 위해 무언가를 포기했다.</p>
+      <p>다만 평가의 가중치는 <strong>사용자에 따라 뒤집힌다</strong>. n8n의 최대 약점인 "설정 난이도"와 "통합 부족"은, 시스템 프로그래밍 배경 + 이미 self-host 인프라(NAS·Docker)를 운영 중인 사용자에게는 거의 무력화된다. 코드 노드는 마찰이 아니라 자유가 되고, HTTP 노드는 한계가 아니라 만능이 된다.</p>
+      <p>그래서 동일 워크플로를 <span class="hl">Make와 n8n 양쪽에 구현</span>해 보는 것은 단순 반복이 아니라, <strong>operation 모델과 execution 모델이 같은 로직을 어떻게 다르게 과금·실행하는지</strong>를 몸으로 체득하는 과정이다. 점수분류 같은 단순 분기에서는 차이가 작아 보이지만, 멀티스텝 파이프라인으로 갈수록 이 과금 단위 하나가 도구 선택을 결정짓는다.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="row">
+      <span>// AUTOMATION TOOLS DATASHEET — n8n · Make · Zapier</span>
+      <span>Codyssey · AI Native</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span>가격·수치는 2026년 공개 기준이며 수시로 변동될 수 있음. 도입 전 각 공식 가격 페이지 확인 권장.</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // scroll reveal
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{
+    el.style.transitionDelay = (Math.min(i,6)*40)+'ms';
+    io.observe(el);
+  });
+
+  // gentle oscilloscope sweep (skipped under reduced motion)
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    [['wz',1.2],['wm',1.4],['wn',1.6]].forEach(([id,w])=>{
+      const p=document.getElementById(id);
+      if(!p) return;
+      const len=p.getTotalLength();
+      p.style.strokeDasharray=len;
+      p.style.strokeDashoffset=len;
+      p.animate(
+        [{strokeDashoffset:len},{strokeDashoffset:0}],
+        {duration:1600,delay:200,easing:'ease-out',fill:'forwards'}
+      );
+    });
+  }
+  // ---------- export: PDF ----------
+  document.getElementById('btn-pdf').addEventListener('click', ()=>{
+    document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+    window.print();
+  });
+
+  // ---------- export: Markdown ----------
+  const MD = `# 자동화 툴 비교 — n8n · Make · Zapier
+
+> Codyssey · AI Native — No-Code Automation 비교 데이터시트
+> 같은 일을 하는 세 도구. 하지만 "어떻게" 하느냐에서 설계 철학이 갈린다.
+
+## 도구별 정체성
+
+| 도구 | 성격 | 한 줄 요약 |
+|---|---|---|
+| **Zapier** | Breadth · Ease-first | 폭과 속도를 위해 깊이·비용효율을 판다. 8,000+ 앱을 가장 빠르게 연결. |
+| **Make** | Visual · Mid-tier | 시각적 명료성을 위해 약간의 복잡도를 산다. 데이터 흐름이 눈에 보인다. |
+| **n8n** | Control · Code-native | 통제·확장성을 위해 진입 비용을 떠안는다. self-host + 코드 노드 + AI 네이티브. |
+
+## 01. 9개 축 비교 매트릭스
+
+> ★ = 해당 축 우위
+
+| 비교 항목 | Zapier | Make | n8n |
+|---|---|---|---|
+| **UI / UX** | ★ 선형 단계형 빌더. 가장 깔끔·직관적 | 캔버스형 플로우차트, 가장 시각적 | 노드 그래프, 강력하나 기술적 |
+| **설정 난이도** | ★ 가장 낮음. 30분 미만, 인프라 셋업 없음 | 중간. router·iterator에서 가팔라짐 | 가장 높음. self-host는 서버·Docker 필요 |
+| **연동 서비스 범위** | ★ 8,000+ 압도적 1위 | ~3,000 중간 규모 | ~1,100 최소, 단 HTTP/코드로 무엇이든 |
+| **무료 플랜 범위** | 월 100 task, 2-스텝 한정 | 월 1,000 ops, 시나리오 2개 | ★ self-host 시 실행 무제한·무료 |
+| **실행 로그 확인** | Zap History, task 단위 | History 탭, 모듈별 데이터 시각 열람 | ★ Executions 탭, 노드별 입출력·재실행, 로그 직접 통제 |
+| **과금 단위** | 액션마다 task — 복잡도가 곧 비용 | 모듈마다 operation, 폴링이 쿼터 소진 | ★ 워크플로 1회=1 execution, 스텝 수 무관 |
+| **데이터 주권 / 호스팅** | 완전 호스팅(SaaS) | 완전 호스팅(SaaS) | ★ 오픈소스 self-host, 데이터 직접 통제 |
+| **제어 흐름** | 선형, 복잡 분기에 약함 | ★ 비주얼 분기 + iterator | ★ 노드 그래프 + JS/Python 코드 |
+| **AI 에이전트** | Agents·Copilot, AI를 API로 취급 | Make AI Agents, reasoning 패널 | ★ 네이티브 LangChain·70+ 노드·영속 메모리·로컬 LLM |
+
+## 02. 각 도구의 장단점
+
+### Zapier — The Connector
+**장점**
+- 업계 최대 통합 라이브러리(8,000+) — 거의 모든 SaaS 커버
+- 가장 낮은 진입 장벽, 가장 빠른 time-to-value
+- 가장 깔끔한 UI, 인프라·유지보수 부담 없음
+
+**단점**
+- 스케일에서 가장 비쌈 — task 과금이 복잡도를 처벌
+- 선형 구조라 복잡한 분기·반복에 취약
+- 깊은 커스터마이징·코드 제어가 제한적
+
+### Make — The Visual Builder
+**장점**
+- 세 도구 중 디버깅 가시성 최고 — 데이터 흐름이 보임
+- 가성비 좋은 중간 티어 + 후한 무료(1,000 ops)
+- router·iterator로 강력한 분기·배치 처리
+
+**단점**
+- operation 과금 — 매분 폴링이면 월 ~43,000 ops 선소진
+- Zapier보다 적은 통합(~3,000)
+- self-host 불가, router 도입 시 곡선 가팔라짐
+
+### n8n — The Engine
+**장점**
+- 스케일에서 가장 저렴 — execution 과금, self-host는 무제한 무료
+- self-host = 완전한 데이터 주권
+- JS/Python 코드 노드 — 가장 깊은 커스터마이징
+- AI 네이티브(LangChain·에이전트·로컬 LLM)
+
+**단점**
+- 가장 가파른 학습 곡선
+- 사전 통합 가장 적음 — HTTP 노드 의존
+- self-host 시 인프라·DevOps 책임을 직접 부담
+
+### 스케일 비용 (8-스텝 × 10,000회/월 동일 작업)
+
+| Zapier | Make | n8n Cloud |
+|---|---|---|
+| $250~400+ /월 (80,000 task) | $150~200 /월 (80,000 ops) | $50 /월 (10,000 exec) |
+
+> 복잡할수록 격차가 벌어진다. self-host n8n은 서버비만 든다.
+
+## 03. 어떤 상황에 적합한가 — 평가 의견
+
+- **Zapier 선택** — 비기술 팀이 빠르게 붙여야 할 때. 단순·직관적 워크플로, 크지 않은 볼륨, 비용보다 속도·편의 우선.
+- **Make 선택** — 시각적 사고형 + 중간 복잡도. 분기는 필요하나 self-host 부담은 싫고, Zapier보다 저렴한 가성비를 원할 때.
+- **n8n 선택** — 기술 리소스 보유 + 통제 필요. 대용량·복잡 파이프라인, 데이터 프라이버시 최우선, AI 에이전트/로컬 LLM, self-host 환경.
+
+### 종합 의견
+시장 일반론으로는 "상황별 정답이 다르다"가 맞다. 셋의 차이는 우열이 아니라 **최적화 대상의 선택**이다 — Zapier는 폭, Make는 시각적 명료성, n8n은 통제. 각자가 무언가를 얻기 위해 무언가를 포기했다.
+
+다만 평가의 가중치는 사용자에 따라 뒤집힌다. n8n의 최대 약점인 "설정 난이도"와 "통합 부족"은, 시스템 프로그래밍 배경 + 이미 self-host 인프라(NAS·Docker)를 운영 중인 사용자에게는 거의 무력화된다. 코드 노드는 마찰이 아니라 자유가 되고, HTTP 노드는 한계가 아니라 만능이 된다.
+
+그래서 동일 워크플로를 Make와 n8n 양쪽에 구현해 보는 것은 단순 반복이 아니라, operation 모델과 execution 모델이 같은 로직을 어떻게 다르게 과금·실행하는지를 체득하는 과정이다. 점수분류 같은 단순 분기에서는 차이가 작아 보이지만, 멀티스텝 파이프라인으로 갈수록 이 과금 단위 하나가 도구 선택을 결정짓는다.
+
+---
+*가격·수치는 2026년 공개 기준이며 수시로 변동될 수 있음. 도입 전 각 공식 가격 페이지 확인 권장.*
+`;
+
+  document.getElementById('btn-md').addEventListener('click', ()=>{
+    const blob = new Blob([MD], {type:'text/markdown;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'automation_tools_comparison.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+</script>
+
+</body>
+</html>
