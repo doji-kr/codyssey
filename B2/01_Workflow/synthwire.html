@@ -1,0 +1,1345 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PUPDATE · iHeartDogs Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --surface:#0c0c0c; --surface-2:#161616;
+    --ink:#fff; --muted:#8a8a8a; --faint:#565656;
+    --line:rgba(255,255,255,.15); --line-strong:rgba(255,255,255,.30);
+    --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#000;color:var(--ink)}
+  body{font-family:var(--body);-webkit-font-smoothing:antialiased}
+
+  /* ---- app bar ---- */
+  .bar{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+       border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+       gap:16px;padding:13px 22px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+  .brand .mark{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.02em}
+  .brand .path{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
+  .tabs{display:flex;gap:4px}
+  .tab{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+       color:var(--muted);background:transparent;border:1px solid transparent;border-radius:6px;
+       padding:7px 13px;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:#000;background:var(--ink);border-color:var(--ink)}
+
+  .view{display:none}
+  .view.on{display:block}
+  iframe{width:100%;border:0;display:block;background:#000}
+
+  /* ---- readme view ---- */
+  .readme{max-width:900px;margin:0 auto;padding:42px 22px 110px}
+  .readme .eye{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+  .rtitle{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:.01em;margin:12px 0 2px;line-height:1}
+  .rsubtitle{font-family:var(--disp);font-weight:600;font-size:20px;color:var(--ink);margin:0 0 10px;line-height:1.2}
+  .rflow{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.02em;margin:0 0 18px}
+  .rmeta{display:flex;flex-wrap:wrap;gap:8px}
+  .rmeta span{font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+  .rsec{margin-top:48px}
+  .rsec-h{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+  .rsec h3{font-family:var(--disp);font-weight:700;font-size:22px;margin:0 0 16px;letter-spacing:-.01em}
+  .rsec p{font-size:13.5px;line-height:1.7;color:#cfcfcf;margin:0 0 12px}
+  .rsec p.dim{color:var(--muted)}
+  .rlabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:18px 0 9px}
+  .rlist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .rlist li{font-size:13px;line-height:1.6;color:#cfcfcf;padding-left:16px;position:relative}
+  .rlist li::before{content:"—";position:absolute;left:0;color:var(--faint)}
+  .rlist li b{color:var(--ink);font-weight:700}
+  .kchips{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 6px}
+  .kchip{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:rgba(255,255,255,.03)}
+  .rcallout{border:1px solid var(--line-strong);border-radius:8px;padding:14px 16px;margin-top:16px;font-size:12.5px;line-height:1.65;color:#cfcfcf}
+  .rcallout b{color:var(--ink)}
+  .rcallout code{font-family:var(--mono);background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:.92em;color:var(--ink)}
+  .rt{width:100%;border-collapse:collapse;font-size:13px}
+  .rt th,.rt td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55}
+  .rt th{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .rt td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+  .rt td.k{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  .rt tr:last-child td{border-bottom:none}
+  .rt .ok{font-family:var(--mono);font-size:10px;color:var(--ink);border:1px solid var(--line-strong);border-radius:5px;padding:2px 7px;white-space:nowrap}
+  .rcode{font-family:var(--mono);background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:.92em;color:var(--ink)}
+  .rchain{display:flex;align-items:stretch;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch}
+  .rstep{flex:0 0 auto;min-width:122px;border:1px solid var(--line);border-radius:8px;padding:11px 13px;background:var(--surface)}
+  .rstep .sx{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.1em}
+  .rstep .sn{font-family:var(--disp);font-weight:600;font-size:13.5px;margin-top:4px}
+  .rstep .st{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:5px;letter-spacing:.06em}
+  .rarrow{flex:0 0 auto;align-self:center;color:var(--faint);padding:0 7px;font-size:13px}
+  .rfoot{margin-top:54px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.03em;line-height:1.7}
+  .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* ---- feed view ---- */
+  .feed{max-width:1080px;margin:0 auto;padding:42px 22px 110px}
+  .feed .eye{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+  .feed h2{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:-.01em;margin:11px 0 8px;line-height:1.05}
+  .feed .lede{color:var(--muted);font-size:13px;max-width:62ch;line-height:1.6;margin:0 0 20px}
+  .toolbar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:30px;
+           border:1px solid var(--line);border-radius:8px;padding:11px 14px}
+  .led{width:9px;height:9px;border-radius:50%;background:#555;flex:0 0 auto}
+  .led.on{background:#fff;box-shadow:0 0 9px rgba(255,255,255,.7)}
+  .led.err{background:#fff;opacity:.55}
+  .stxt{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted)}
+  .toolbar .sp{flex:1}
+  .tbtn{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+        color:var(--ink);background:transparent;border:1px solid var(--line-strong);border-radius:6px;
+        padding:7px 12px;cursor:pointer}
+  .tbtn:hover{border-color:var(--ink)}
+  .tbtn.primary{background:var(--ink);color:#000;border-color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+        display:flex;flex-direction:column;transition:transform .14s,border-color .2s,box-shadow .2s}
+  .card:hover{transform:translateY(-3px);border-color:var(--line-strong);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .thumb{aspect-ratio:16/9;background:var(--surface-2);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .noimg{position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);
+        font-family:var(--mono);font-size:10.5px;letter-spacing:.18em}
+  .cbody{padding:15px 16px 16px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .cdate{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;color:var(--faint)}
+  .ctitle{font-family:var(--disp);font-weight:600;font-size:16px;line-height:1.32;margin:0;color:var(--ink)}
+  .csum{font-size:12.5px;line-height:1.6;color:var(--muted);margin:0;
+        display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
+  .tag{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);
+       border-radius:999px;padding:3px 9px;background:rgba(255,255,255,.04)}
+  .csrc{font-family:var(--mono);font-size:11px;color:var(--ink);text-decoration:none;
+        border-bottom:1px solid var(--line-strong);align-self:flex-start;padding-bottom:1px}
+  .csrc:hover{border-color:var(--ink)}
+
+  .state{border:1px dashed var(--line-strong);border-radius:10px;padding:46px 28px;text-align:center;color:var(--muted)}
+  .state h3{font-family:var(--disp);color:var(--ink);margin:0 0 8px;font-size:18px}
+  .state p{margin:0;font-size:13px;line-height:1.6}
+  .state code{font-family:var(--mono);color:var(--ink);background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-size:12px}
+  .state .tbtn{margin-top:18px}
+
+  /* settings modal */
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);
+         display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.open{display:flex}
+  .sheet{width:100%;max-width:440px;background:#0c0c0c;border:1px solid var(--line-strong);border-radius:12px;padding:24px}
+  .sheet h3{font-family:var(--disp);font-size:18px;margin:0 0 4px}
+  .sheet .desc{color:var(--muted);font-size:12px;margin:0 0 18px;line-height:1.6}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;background:#000;border:1px solid var(--line);border-radius:6px;padding:10px 12px;
+        color:var(--ink);font-family:var(--mono);font-size:12.5px}
+  .field input:focus{outline:none;border-color:var(--ink)}
+  .sheet .row{display:flex;gap:9px;justify-content:flex-end;margin-top:20px}
+
+  @media(max-width:560px){
+    .bar{padding:11px 16px}.brand .path{display:none}
+    .feed{padding:30px 16px 80px}.feed h2{font-size:23px}
+  }
+</style>
+
+<div class="bar">
+  <div class="brand"><span class="mark">PUPDATE</span><span class="path">iHeartDogs RSS &rarr; NocoDB</span></div>
+  <div class="tabs">
+    <button class="tab on" data-v="readme">Readme</button>
+    <button class="tab" data-v="flow">Flow</button>
+    <button class="tab" data-v="feed">Feed</button>
+    <button class="tab" data-v="docs">Docs</button>
+  </div>
+</div>
+
+<div class="view on" id="v-readme">
+  <div class="readme">
+    <div class="eye">기획서 / README · 자유 주제 자동화</div>
+    <div class="rtitle">PUPDATE</div>
+    <div class="rsubtitle">영문 반려견 뉴스 자동 수집·번역·아카이빙</div>
+    <p class="rflow">RSS(Dogster) → AI 번역·요약 → AI 썸네일 → NocoDB · n8n on Synology NAS</p>
+    <div class="rmeta"><span>도구 n8n</span><span>주제 필터 1</span><span>중복키 guid</span><span>재시도 ≤ 2</span><span>요약 3줄</span></div>
+
+    <div class="rsec">
+      <div class="rsec-h">01 / 팀 구성</div>
+      <h3>팀 역할 및 개인별 작업</h3>
+      <div class="tscroll"><table class="rt">
+        <tr><th>이름</th><th>역할</th><th>담당 작업</th></tr>
+        <tr><td>외진</td><td class="k">기획</td><td>주제 선정 및 콘텐츠 방향, 요구사항 정리</td></tr>
+        <tr><td>수향</td><td class="k">기획</td><td>주제 필터링 기준(키워드·태그) 정의, 큐레이션 정책</td></tr>
+        <tr><td>정현</td><td class="k">기획</td><td>에러 처리·중복 방지 정책 설계, 검수 시나리오</td></tr>
+        <tr><td>도일</td><td class="k">프로그래밍</td><td>n8n 워크플로 구현, API 연동(OpenRouter·NocoDB), 디버깅, 결과 웹페이지 제작</td></tr>
+      </table></div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">02 / 프로젝트 개요</div>
+      <h3>반복 업무와 도구 선정</h3>
+      <p><b style="color:var(--ink)">반복 업무</b> — 매일 영문 반려견 뉴스를 확인 → 주제에 맞는 기사를 골라 → 한국어로 요약 → 출처·발행일과 함께 정리해 보관하는 작업.</p>
+      <div class="rlabel">도구 선정 — n8n</div>
+      <ul class="rlist">
+        <li>운영 중인 <b>Synology NAS에 셀프호스팅</b> → 실행 비용 0, 데이터 자체 보관</li>
+        <li><b>HTTP·Code 노드</b>로 OpenRouter·NocoDB 등 임의 API를 자유롭게 연동</li>
+        <li><b>스케줄 트리거·재시도·실행 로그</b> 기본 내장 → 안정적 무인 자동화에 유리</li>
+      </ul>
+      <div class="rlabel">저장소</div>
+      <p class="dim">NocoDB(노션형 협업 데이터베이스, 자체 호스팅). 제목·요약·링크·발행일을 각 컬럼(속성)에 저장.</p>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">03 / 주제 필터링 기준</div>
+      <h3>키워드·태그 목록과 선택 이유</h3>
+      <p>RSS로 들어온 모든 기사를 처리하지 않고, <b style="color:var(--ink)">반려견 보호자에게 실질적으로 유용한 주제</b>만 통과시킨다. 기사 <span class="rcode">title</span>·<span class="rcode">contentSnippet</span>에 아래 키워드가 하나라도 포함되면 "주제 일치"로 판정한다(대소문자 무시).</p>
+      <div class="rlabel">통과 키워드 (영문 — 원문 기준)</div>
+      <div class="kchips"><span class="kchip">dog</span><span class="kchip">puppy</span><span class="kchip">breed</span><span class="kchip">training</span><span class="kchip">behavior</span><span class="kchip">health</span><span class="kchip">vet</span><span class="kchip">nutrition</span><span class="kchip">food</span><span class="kchip">adoption</span><span class="kchip">rescue</span><span class="kchip">safety</span><span class="kchip">recall</span></div>
+      <div class="rlabel">분류 태그 (한국어 — 저장 기준)</div>
+      <div class="kchips"><span class="kchip">건강</span><span class="kchip">훈련</span><span class="kchip">행동</span><span class="kchip">영양</span><span class="kchip">입양·구조</span><span class="kchip">견종</span><span class="kchip">안전·리콜</span></div>
+      <div class="rlabel">선택 이유</div>
+      <ul class="rlist">
+        <li><b>유용성 우선</b> — 건강·훈련·안전처럼 보호자가 바로 활용할 수 있는 정보를 중심으로 큐레이션한다.</li>
+        <li><b>노이즈 제거</b> — 단순 가십·홍보성 글, 주제와 무관한 기사를 배제해 아카이브 품질을 유지한다.</li>
+        <li><b>비용 절감</b> — 주제에 맞는 기사만 AI 번역·이미지 단계로 보내므로 불필요한 API 호출이 줄어든다.</li>
+      </ul>
+      <div class="rcallout"><b>구현</b> — 주제 필터는 <span class="rcode">IF</span> 노드(또는 Filter)로 구현하며, 조건은 <span class="rcode">{{ /dog|puppy|breed|training|.../i.test($json.title + $json.contentSnippet) }}</span> 형태의 키워드 매칭이다. 요구사항의 "주제에 해당하는 1건 선택"을 충족하기 위해, 필터 통과분 중 <b>최신 1건만</b> 다음 단계로 보내도록 <span class="rcode">Limit 1</span>을 둘 수 있다.</div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">04 / 워크플로우 흐름</div>
+      <h3>데이터 수집 → AI 가공 → 저장</h3>
+      <div class="rchain">
+        <div class="rstep"><div class="sx">00</div><div class="sn">Schedule</div><div class="st">TRIGGER</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">01</div><div class="sn">Dogster RSS</div><div class="st">수집</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">02</div><div class="sn">주제 필터</div><div class="st">FILTER</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">03</div><div class="sn">중복 제거</div><div class="st">FILTER</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">04</div><div class="sn">번역·요약</div><div class="st">AI</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">05</div><div class="sn">Parse</div><div class="st">가공</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">06</div><div class="sn">Get Thumbnail</div><div class="st">AI</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">07</div><div class="sn">Upload</div><div class="st">저장</div></div><div class="rarrow">→</div>
+        <div class="rstep"><div class="sx">08</div><div class="sn">Create Record</div><div class="st">저장</div></div>
+      </div>
+      <div class="tscroll"><table class="rt">
+        <tr><th>단계</th><th>역할</th></tr>
+        <tr><td class="k">00 Schedule Trigger</td><td>매일 지정 시각에 무인 자동 실행</td></tr>
+        <tr><td class="k">01 Dogster RSS</td><td>영문 반려견 뉴스 수집 (title·link·contentSnippet·guid·발행일)</td></tr>
+        <tr><td class="k">02 주제 필터(IF)</td><td>키워드 매칭으로 주제 일치 기사만 통과</td></tr>
+        <tr><td class="k">03 Remove Duplicates</td><td>guid 기준 이미 처리한 기사 폐기 (중복 저장 방지)</td></tr>
+        <tr><td class="k">04 번역·요약 LLM</td><td>한국어 제목·3줄 이내 요약·태그 생성 (기사당 1회)</td></tr>
+        <tr><td class="k">05 Parse JSON</td><td>응답 파싱 + 원문 링크·발행일 결합</td></tr>
+        <tr><td class="k">06 Get Thumbnail</td><td>AI 썸네일 생성</td></tr>
+        <tr><td class="k">07 Upload Thumbnail</td><td>NocoDB 스토리지 업로드</td></tr>
+        <tr><td class="k">08 Create Record</td><td>제목·요약·링크·발행일·썸네일을 각 속성에 저장</td></tr>
+      </table></div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">05 / 에러 처리 · 방어 지점</div>
+      <h3>어디서 무엇을 방어했는가</h3>
+      <div class="tscroll"><table class="rt">
+        <tr><th>요구사항 / 위험</th><th>방어 위치</th><th>메커니즘</th></tr>
+        <tr><td>사람 개입 없는 자동 완료</td><td class="k">00 Schedule Trigger</td><td>매일 정해진 시각 자동 실행</td></tr>
+        <tr><td>뉴스 미수집 시 처리</td><td class="k">01 RSS → 이후 전체</td><td>수집 0건이면 빈 배열 → 하류 미실행으로 안전 종료</td></tr>
+        <tr><td>주제 외 기사 유입</td><td class="k">02 주제 필터(IF)</td><td>키워드 불일치 기사 폐기</td></tr>
+        <tr><td>중복 저장 방지</td><td class="k">03 Remove Duplicates</td><td><span class="rcode">dedupeValue = guid || link</span></td></tr>
+        <tr><td>요약 1건당 1회</td><td class="k">04 번역 LLM</td><td>반복 호출 없음(루프 미사용). 1 아이템 = 1 호출</td></tr>
+        <tr><td>재시도 최대 2회</td><td class="k">04 번역 LLM</td><td><span class="rcode">retryOnFail</span> + Max Tries 3 (최초 1 + 재시도 2 상한)</td></tr>
+        <tr><td>LLM 출력 형식 깨짐</td><td class="k">04 → 05</td><td><span class="rcode">response_format: json_object</span> 강제 + Parse의 try/catch</td></tr>
+        <tr><td>개별 기사 처리 실패 격리</td><td class="k">05 Parse JSON</td><td>실패 건 <span class="rcode">null</span> 반환 후 필터 → 나머지 정상 진행</td></tr>
+        <tr><td>빈 값으로 저장 깨짐</td><td class="k">08 Create Record</td><td><span class="rcode">JSON.stringify(... ?? null)</span>로 유효 JSON 보장</td></tr>
+        <tr><td>이미지 누락 응답</td><td class="k">06 Extract Image</td><td>이미지 없으면 <span class="rcode">continue</span>로 스킵</td></tr>
+        <tr><td>API 비용 폭주</td><td class="k">02·03 (AI 앞단)</td><td>필터·중복제거를 AI 단계 앞에 배치 → 신규·관련 기사만 호출</td></tr>
+      </table></div>
+      <div class="rlabel">정책 선택 이유</div>
+      <ul class="rlist">
+        <li><b>중복키로 guid 선택</b> — 원문 link는 트래킹 파라미터로 변형될 수 있어, 기사 고유 식별자인 guid가 더 안정적인 중복 판정 키다. (없을 때만 link 폴백)</li>
+        <li><b>요약 1회 원칙</b> — 같은 기사를 여러 번 요약하면 비용이 비례해 늘고 결과가 흔들린다. 1 기사 = 1 호출로 비용과 일관성을 동시에 확보.</li>
+        <li><b>재시도 2회 상한</b> — 일시적 오류(429/5xx)는 자동 복구하되, 무한 재시도로 인한 비용·지연 폭주를 막기 위해 상한을 둔다.</li>
+        <li><b>실패 격리</b> — 15건 중 1건이 깨져도 전체가 멈추지 않도록 try/catch로 격리(graceful degradation).</li>
+      </ul>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">06 / 과제 목표 충족</div>
+      <h3>학습 목표 대응</h3>
+      <div class="tscroll"><table class="rt">
+        <tr><th>학습 목표</th><th>대응</th></tr>
+        <tr><td>RSS → AI 가공 → 저장 자동화 워크플로우 설명</td><td>04절 9단계 흐름 전체가 수집→번역·요약→NocoDB 저장으로 이어진다</td></tr>
+        <tr><td>생성형 AI로 텍스트 요약 자동화</td><td>04 번역 LLM이 영문 기사를 한국어 3줄 이내로 요약 (Gemini, OpenRouter)</td></tr>
+        <tr><td>스케줄 트리거·에러 처리 기반 안정적 설계</td><td>00 Schedule + 05절 방어 지점(중복키·재시도 상한·실패 격리)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-h">07 / 기능 요구사항 충족</div>
+      <h3>요구사항 체크</h3>
+      <div class="tscroll"><table class="rt">
+        <tr><th>요구사항</th><th>충족</th><th>구현</th></tr>
+        <tr><td>RSS 자동 수집 + 매일 트리거</td><td><span class="ok">충족</span></td><td class="k">Schedule Trigger + Dogster RSS</td></tr>
+        <tr><td>주제 일치 기사 선택 + 제목·링크·본문 추출</td><td><span class="ok">충족</span></td><td class="k">주제 필터(IF) + Limit 1 + RSS 필드</td></tr>
+        <tr><td>AI로 3줄 이내 요약</td><td><span class="ok">충족</span></td><td class="k">번역 LLM (summary_kr)</td></tr>
+        <tr><td>DB에 제목·요약·링크·발행일 각 속성 저장</td><td><span class="ok">충족</span></td><td class="k">NocoDB · title_kr·summary_kr·source_url·pub_date</td></tr>
+        <tr><td>무인 자동 완료 + 오류 처리</td><td><span class="ok">충족</span></td><td class="k">05절 방어 지점 참고</td></tr>
+        <tr><td>중복 방지 키 1개 이상</td><td><span class="ok">충족</span></td><td class="k">Remove Duplicates · guid</td></tr>
+        <tr><td>요약 1건당 1회 / 재시도 ≤ 2</td><td><span class="ok">충족</span></td><td class="k">루프 없음 · retryOnFail Max Tries 3</td></tr>
+      </table></div>
+      <div class="rcallout"><b>요약 3줄 보장</b> — 번역 노드 시스템 프롬프트에 "summary_kr은 3줄(약 3문장) 이내로 작성"을 명시하면 요건을 안정적으로 충족한다.</div>
+    </div>
+
+    <div class="rfoot">PUPDATE · 기획서/README · 외진·수향·정현(기획) / 도일(프로그래밍) · n8n / OpenRouter / NocoDB</div>
+  </div>
+</div>
+
+<div class="view" id="v-flow"><iframe id="if-flow" srcdoc="<meta charset=&quot;utf-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+<title>DATAFLOW · iHeartDogs Pipeline</title>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+<link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+<style>
+  :root{
+    --bg:#000; --ink:#fff; --dim:#7a7a7a; --faint:#3a3a3a; --line:rgba(255,255,255,.24);
+    --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1180px;margin:0 auto;padding:30px 26px 60px}
+
+  /* header */
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:0}
+  .eye{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--dim)}
+  h1{font-family:var(--disp);font-weight:700;font-size:29px;letter-spacing:-.01em;margin:11px 0 0;line-height:1.04}
+  h1 .arr{color:var(--dim);font-weight:500;margin:0 .25em}
+  .meta{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-align:right;line-height:1.9}
+  .meta b{color:var(--ink);font-weight:500}
+
+  /* status — sticky top, always visible */
+  .status{position:sticky;top:0;z-index:50;background:var(--bg);
+          border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+          margin:22px 0 34px;padding:15px 2px;display:flex;align-items:center;gap:13px;flex-wrap:nowrap;overflow:hidden}
+  .status .run{color:var(--ink);font-size:15px;animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:.12}}
+  .status .tag{font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+  .status .si{color:var(--dim);font-weight:700;font-size:14px}
+  .status .sn{font-family:var(--disp);color:var(--ink);font-weight:700;font-size:20px;letter-spacing:.02em;white-space:nowrap;flex:0 0 auto}
+  .status .sep{color:var(--faint);flex:0 0 auto}
+  .status .sd{color:#b8b8b8;font-size:12.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto}
+
+  /* stage */
+  #stage{position:relative;width:100%}
+  .wire,.flow{position:absolute;inset:0;pointer-events:none}
+  .flow{z-index:5}
+  .node{position:absolute;display:flex;flex-direction:column;align-items:center;text-align:center;
+         background:transparent;z-index:2}
+  .disc{width:64px;height:64px;margin-top:4px;border-radius:50%;border:1px solid var(--line);
+        overflow:hidden;background:#000;transition:filter .16s ease, box-shadow .28s ease, border-color .28s ease}
+  .disc canvas{display:block;width:100%;height:100%}
+  .node .no{font-size:10px;letter-spacing:.26em;color:var(--dim);font-weight:500;margin-top:12px}
+  .node .nm{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:.02em;line-height:1.1;margin:5px 0 6px;color:var(--ink)}
+  .node .d{font-size:11px;line-height:1.5;color:var(--dim);max-width:18ch}
+  .node.active .disc{filter:invert(1);box-shadow:0 0 0 1px #fff,0 0 22px rgba(255,255,255,.45);border-color:#fff}
+  .node.active .nm{color:#fff}
+  .node.active .no{color:var(--ink)}
+
+  @media(max-width:560px){
+    h1{font-size:21px}.meta{display:none}.wrap{padding:22px 16px 50px}
+    .status{gap:8px;padding:13px 2px}.status .tag{display:none}.status .si{font-size:12px}
+    .status .sn{font-size:16px}.node .nm{font-size:14px}.node .d{font-size:10px}
+  }
+  @media(prefers-reduced-motion:reduce){ .status .run{animation:none} }
+</style>
+
+<div class=&quot;wrap&quot;>
+  <div class=&quot;head&quot;>
+    <div>
+      <div class=&quot;eye&quot;>N8N · Dataflow</div>
+      <h1>iHeartDogs RSS <span class=&quot;arr&quot;>→</span> NocoDB</h1>
+    </div>
+    <div class=&quot;meta&quot;><b>12</b> Nodes<br><b>1</b> Stream<br>B / W</div>
+  </div>
+
+  <div class=&quot;status&quot;>
+    <span class=&quot;run&quot;>▸</span>
+    <span class=&quot;tag&quot;>Processing</span>
+    <span class=&quot;si&quot; id=&quot;stIdx&quot;>01</span>
+    <span class=&quot;sn&quot; id=&quot;stName&quot;>RSS FEED</span>
+    <span class=&quot;sep&quot;>—</span>
+    <span class=&quot;sd&quot; id=&quot;stDesc&quot;>피드에서 새 글을 가져온다</span>
+  </div>
+
+  <div id=&quot;stage&quot;>
+    <canvas class=&quot;wire&quot; id=&quot;wire&quot;></canvas>
+    <canvas class=&quot;flow&quot; id=&quot;flow&quot;></canvas>
+  </div>
+</div>
+
+<script>
+(function(){
+  &quot;use strict&quot;;
+  var REDUCED = window.matchMedia &amp;&amp; matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  var NODES = [
+    {nm:'RSS FEED',     d:'피드에서 새 글을 가져온다',   t:0},
+    {nm:'FILTER',       d:'반려견 키워드 글만 통과',     t:1},
+    {nm:'SELECT TOPIC', d:'정한 토픽의 글만 통과',       t:2},
+    {nm:'DEDUP',        d:'전에 본 글을 걸러낸다',       t:3},
+    {nm:'DB CHECK',     d:'DB에 이미 있는지 조회',       t:4},
+    {nm:'IS NEW?',      d:'새 글만 다음으로 보낸다',     t:5},
+    {nm:'TRANSLATE',    d:'영문 글을 한국어로 요약',     t:6},
+    {nm:'PARSE',        d:'응답을 깔끔한 데이터로 정리', t:7},
+    {nm:'THUMBNAIL',    d:'표지 이미지를 생성',         t:8},
+    {nm:'EXTRACT',      d:'이미지를 파일로 변환',       t:9},
+    {nm:'UPLOAD',       d:'이미지를 저장소에 올린다',   t:10},
+    {nm:'CREATE',       d:'DB에 새 레코드를 만든다',    t:11}
+  ];
+  var N = NODES.length, DISC = 64;
+
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+  // ---- contextual minimal motifs: draw(ctx, S, t)  t in [0,1) looping ----
+  function rss(c,S,t){var ox=S*0.28,oy=S*0.72;for(var k=0;k<3;k++){var rr=((t+k/3)%1),rad=rr*S*0.6;c.globalAlpha=Math.max(0,1-rr);c.beginPath();c.arc(ox,oy,rad,-Math.PI/2,0);c.stroke();}c.globalAlpha=1;c.beginPath();c.arc(ox,oy,2.4,0,7);c.fill();}
+  function filter(c,S,t){c.beginPath();c.moveTo(S*0.24,S*0.3);c.lineTo(S*0.5,S*0.58);c.lineTo(S*0.76,S*0.3);c.stroke();c.beginPath();c.moveTo(S*0.5,S*0.58);c.lineTo(S*0.5,S*0.74);c.stroke();var y=S*0.2+(t%1)*S*0.58;c.beginPath();c.arc(S*0.5,y,2.4,0,7);c.fill();}
+  function select(c,S,t){var n=4,sel=Math.floor(t*n)%n;for(var r=0;r<n;r++){var y=S*(0.3+r*0.14);if(r===sel){c.globalAlpha=1;c.beginPath();c.moveTo(S*0.34,y);c.lineTo(S*0.7,y);c.stroke();c.beginPath();c.arc(S*0.28,y,2.2,0,7);c.fill();}else{c.globalAlpha=0.38;c.beginPath();c.moveTo(S*0.4,y);c.lineTo(S*0.64,y);c.stroke();}}c.globalAlpha=1;}
+  function dedup(c,S,t){var cy=S*0.5;c.beginPath();c.arc(S*0.42,cy,S*0.15,0,7);c.stroke();var rx=S*0.6-t*S*0.18;c.globalAlpha=Math.max(0,1-t);c.beginPath();c.arc(rx,cy,S*0.15,0,7);c.stroke();c.globalAlpha=1;}
+  function dbcheck(c,S,t){for(var r=0;r<3;r++){var y=S*(0.32+r*0.16);c.globalAlpha=0.45;c.beginPath();c.moveTo(S*0.28,y);c.lineTo(S*0.72,y);c.stroke();}c.globalAlpha=1;var sy=S*(0.24+(t%1)*0.56);c.beginPath();c.moveTo(S*0.22,sy);c.lineTo(S*0.78,sy);c.stroke();}
+  function isnew(c,S,t){c.beginPath();c.moveTo(S*0.5,S*0.76);c.lineTo(S*0.5,S*0.5);c.stroke();c.beginPath();c.moveTo(S*0.5,S*0.5);c.lineTo(S*0.3,S*0.28);c.moveTo(S*0.5,S*0.5);c.lineTo(S*0.7,S*0.28);c.stroke();var px,py;if(t<0.55){var p=t/0.55;px=S*0.5;py=S*0.76+(S*0.5-S*0.76)*p;}else{var q=(t-0.55)/0.45;px=S*0.5+(S*0.7-S*0.5)*q;py=S*0.5+(S*0.28-S*0.5)*q;}c.beginPath();c.arc(px,py,2.4,0,7);c.fill();c.globalAlpha=0.3;c.beginPath();c.arc(S*0.3,S*0.28,2,0,7);c.fill();c.globalAlpha=1;}
+  function translate(c,S,t){var wx=S*0.16+(t%1)*S*0.68;c.save();c.beginPath();c.rect(S*0.16,S*0.16,Math.max(0,wx-S*0.16),S*0.68);c.clip();for(var y=S*0.24;y<S*0.78;y+=S*0.1){c.beginPath();c.moveTo(S*0.2,y);c.lineTo(S*0.8,y);c.stroke();}c.restore();c.save();c.beginPath();c.rect(wx,S*0.16,Math.max(0,S*0.84-wx),S*0.68);c.clip();for(var x=S*0.24;x<S*0.78;x+=S*0.1){c.beginPath();c.moveTo(x,S*0.2);c.lineTo(x,S*0.8);c.stroke();}c.restore();c.globalAlpha=0.6;c.beginPath();c.moveTo(wx,S*0.14);c.lineTo(wx,S*0.86);c.stroke();c.globalAlpha=1;}
+  function parse(c,S,t){var tri=t<0.5?t*2:(1-t)*2;var e=tri<0.5?2*tri*tri:1-Math.pow(-2*tri+2,2)/2;var rng=mulberry32(12345);for(var i=0;i<9;i++){var gx=S*(0.3+(i%3)*0.2),gy=S*(0.3+Math.floor(i/3)*0.2);var sx=S*(0.18+rng()*0.64),sy=S*(0.18+rng()*0.64);c.beginPath();c.arc(sx+(gx-sx)*e,sy+(gy-sy)*e,2,0,7);c.fill();}}
+  function thumb(c,S,t){c.strokeRect(S*0.22,S*0.26,S*0.56,S*0.48);c.beginPath();c.arc(S*0.62,S*0.4,S*0.05,0,7);c.stroke();c.beginPath();c.moveTo(S*0.24,S*0.7);c.lineTo(S*0.4,S*0.52);c.lineTo(S*0.52,S*0.64);c.lineTo(S*0.64,S*0.5);c.lineTo(S*0.76,S*0.66);c.stroke();var sx=S*0.22+(t%1)*S*0.56;c.globalAlpha=0.5;c.beginPath();c.moveTo(sx,S*0.26);c.lineTo(sx,S*0.74);c.stroke();c.globalAlpha=1;}
+  function extract(c,S,t){for(var i=0;i<9;i++){var gx=S*(0.24+(i%3)*0.12),gy=S*(0.34+Math.floor(i/3)*0.12);c.globalAlpha=0.55;c.strokeRect(gx-3,gy-3,6,6);}c.globalAlpha=1;for(var k=0;k<3;k++){var p=((t+k/3)%1);c.globalAlpha=1-p;c.beginPath();c.arc(S*0.55+p*S*0.3,S*(0.4+k*0.12),2,0,7);c.fill();}c.globalAlpha=1;}
+  function upload(c,S,t){c.globalAlpha=0.55;c.beginPath();c.moveTo(S*0.26,S*0.28);c.lineTo(S*0.74,S*0.28);c.stroke();c.globalAlpha=1;for(var k=0;k<3;k++){var p=((t+k/3)%1),y=S*0.76-p*S*0.46;c.globalAlpha=Math.min(1,(1-p)*1.4);c.beginPath();c.arc(S*0.5,y,2.2,0,7);c.fill();}c.globalAlpha=1;}
+  function create(c,S,t){for(var r=0;r<3;r++){var y=S*(0.3+r*0.13);c.globalAlpha=0.5;c.beginPath();c.moveTo(S*0.26,y);c.lineTo(S*0.66,y);c.stroke();}c.globalAlpha=1;var ny=S*0.69,w=(t%1);c.beginPath();c.moveTo(S*0.26,ny);c.lineTo(S*0.26+w*S*0.4,ny);c.stroke();c.globalAlpha=Math.sin(t*Math.PI*2)*0.5+0.5;c.beginPath();c.moveTo(S*0.74,ny-3);c.lineTo(S*0.74,ny+3);c.moveTo(S*0.71,ny);c.lineTo(S*0.77,ny);c.stroke();c.globalAlpha=1;}
+  var MOTIFS=[rss,filter,select,dedup,dbcheck,isnew,translate,parse,thumb,extract,upload,create];
+
+  var stage=document.getElementById('stage');
+  var wire=document.getElementById('wire'), flow=document.getElementById('flow');
+  var wctx=wire.getContext('2d'), fctx=flow.getContext('2d');
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+
+  NODES.forEach(function(nd,i){
+    var el=document.createElement('div'); el.className='node';
+    var disc=document.createElement('div'); disc.className='disc';
+    var cv=document.createElement('canvas'); disc.appendChild(cv);
+    var txt=document.createElement('div');
+    txt.innerHTML='<div class=&quot;no&quot;>'+String(i+1).padStart(2,'0')+'</div>'+
+                  '<div class=&quot;nm&quot;>'+nd.nm+'</div>'+
+                  '<div class=&quot;d&quot;>'+nd.d+'</div>';
+    el.appendChild(disc); el.appendChild(txt);
+    stage.appendChild(el);
+    nd.el=el; nd.cv=cv; nd.cx=cv.getContext('2d');
+    nd.ph=Math.random(); nd.spd=0.12+Math.random()*0.13;
+    cv.width=Math.round(DISC*dpr); cv.height=Math.round(DISC*dpr);
+  });
+
+  var centers=[], cardW=0, cardH=0;
+
+  function layout(){
+    var W=stage.clientWidth;
+    var cols = W>=980?4 : W>=640?3 : 2;
+    var gapX = Math.max(26, W*0.045);
+    var cellW = W/cols;
+    cardW = cellW - gapX;
+    cardH = (W>=640)?152:144;
+    var rowH = cardH + 30;
+    var rows = Math.ceil(N/cols);
+    var totalH = rows*rowH;
+    stage.style.height = totalH+'px';
+
+    centers=[];
+    for(var i=0;i<N;i++){
+      var row=Math.floor(i/cols), pos=i%cols;
+      var col=(row%2===0)?pos:(cols-1-pos);
+      var cx=col*cellW + cellW/2;
+      var rowTop=row*rowH;
+      centers.push({x:cx, y:rowTop+4+DISC/2});
+      var nd=NODES[i];
+      nd.el.style.width=cardW+'px'; nd.el.style.height=cardH+'px';
+      nd.el.style.left=(cx-cardW/2)+'px'; nd.el.style.top=rowTop+'px';
+      drawChip(nd);
+    }
+    [wire,flow].forEach(function(cnv){cnv.width=Math.round(W*dpr);cnv.height=Math.round(totalH*dpr);cnv.style.width=W+'px';cnv.style.height=totalH+'px';});
+    drawWires();
+  }
+
+  function drawChip(nd){
+    var c=nd.cx, S=DISC;
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.globalCompositeOperation='source-over'; c.globalAlpha=1;
+    c.fillStyle='#000'; c.fillRect(0,0,S,S);
+    c.fillStyle='#fff'; c.strokeStyle='#fff'; c.lineWidth=1.6;
+    MOTIFS[nd.t](c,S,nd.ph);
+  }
+
+  function drawWires(){
+    wctx.setTransform(dpr,0,0,dpr,0,0);
+    wctx.clearRect(0,0,wire.width,wire.height);
+    wctx.strokeStyle='rgba(255,255,255,.36)'; wctx.lineWidth=1.3; wctx.setLineDash([2,4]);
+    for(var i=0;i<centers.length-1;i++){ wctx.beginPath(); wctx.moveTo(centers[i].x,centers[i].y); wctx.lineTo(centers[i+1].x,centers[i+1].y); wctx.stroke(); }
+    wctx.setLineDash([]);
+  }
+
+  // ---- node visit state ----
+  var frozen=-1;
+  function arrive(i){ frozen=i; NODES.forEach(function(o,k){o.el.classList.toggle('active',k===i);}); setStatus(i); }
+  function leave(){ frozen=-1; NODES.forEach(function(o){o.el.classList.remove('active');}); }
+  function setStatus(i){
+    document.getElementById('stIdx').textContent=String(i+1).padStart(2,'0');
+    document.getElementById('stName').textContent=NODES[i].nm;
+    document.getElementById('stDesc').textContent=NODES[i].d;
+  }
+
+  // ---- flow ----
+  var cur=0, phase='dwell', timer=0, moveT=0, segDur=0, fromP, toP, moveTo=0;
+  var dotPos={x:0,y:0}, dotAlpha=1, trail=[];
+  var DWELL=560, SPEED=300, last=0;
+  function ease(k){return k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;}
+  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+  function startMove(a,b){fromP=centers[a];toP=centers[b];moveTo=b;segDur=Math.max(320,dist(fromP,toP)/SPEED*1000);moveT=0;phase='move';leave();}
+
+  function frame(now){
+    if(!last)last=now; var dt=now-last; last=now; if(dt>120)dt=120;
+
+    if(phase==='dwell'){
+      timer-=dt; dotPos=centers[cur]; dotAlpha=1;
+      if(timer<=0){ if(cur>=N-1){phase='return';timer=480;leave();} else {startMove(cur,cur+1);} }
+    } else if(phase==='move'){
+      moveT+=dt; var k=Math.min(1,moveT/segDur), e=ease(k);
+      dotPos={x:fromP.x+(toP.x-fromP.x)*e, y:fromP.y+(toP.y-fromP.y)*e}; dotAlpha=1;
+      trail.push({x:dotPos.x,y:dotPos.y,a:1});
+      if(k>=1){ cur=moveTo; arrive(cur); phase='dwell'; timer=DWELL; }
+    } else if(phase==='return'){
+      timer-=dt; dotAlpha=Math.max(0,timer/480);
+      if(timer<=0){ cur=0; dotPos=centers[0]; dotAlpha=1; trail=[]; arrive(0); phase='dwell'; timer=DWELL; }
+    }
+
+    // animate every chip except the frozen one
+    for(var i=0;i<N;i++){ if(i!==frozen){ var nd=NODES[i]; nd.ph=(nd.ph+dt/1000*nd.spd)%1; drawChip(nd); } }
+
+    for(var j=trail.length-1;j>=0;j--){ trail[j].a-=dt/520; if(trail[j].a<=0)trail.splice(j,1); }
+    if(trail.length>60)trail.splice(0,trail.length-60);
+
+    drawDot();
+    requestAnimationFrame(frame);
+  }
+
+  function drawDot(){
+    fctx.setTransform(dpr,0,0,dpr,0,0);
+    fctx.clearRect(0,0,flow.width,flow.height);
+    for(var i=0;i<trail.length;i++){var t=trail[i];if(t.a<=0)continue;fctx.globalAlpha=t.a*0.5;fctx.fillStyle='#fff';fctx.beginPath();fctx.arc(t.x,t.y,1.3+t.a*1.6,0,7);fctx.fill();}
+    fctx.globalAlpha=dotAlpha; fctx.shadowColor='rgba(255,255,255,.9)'; fctx.shadowBlur=14; fctx.fillStyle='#fff';
+    fctx.beginPath(); fctx.arc(dotPos.x,dotPos.y,4.2,0,7); fctx.fill();
+    fctx.shadowBlur=0; fctx.globalAlpha=1;
+  }
+
+  function boot(){
+    layout(); cur=0; arrive(0);
+    if(REDUCED){ dotPos=centers[0]; drawDot(); return; }
+    phase='dwell'; timer=DWELL; last=0; requestAnimationFrame(frame);
+  }
+  boot();
+
+  var rt;
+  window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){ layout(); if(REDUCED){dotPos=centers[cur];drawDot();} },160);});
+})();
+</script>
+" scrolling="no"></iframe></div>
+
+<div class="view" id="v-feed">
+  <div class="feed">
+    <div class="eye">Pipeline Output</div>
+    <h2>오늘의 반려견 피드</h2>
+    <p class="lede">파이프라인이 iHeartDogs 피드를 한국어로 번역·요약하고 표지 이미지를 붙여 NocoDB에 쌓은 실제 레코드를 불러옵니다.</p>
+    <div class="toolbar">
+      <span class="led" id="led"></span><span class="stxt" id="stxt">STANDBY</span>
+      <span class="sp"></span>
+      <button class="tbtn" id="btnRefresh">새로고침</button>
+      <button class="tbtn primary" id="btnSettings">연결 설정</button>
+    </div>
+    <div id="articleArea"></div>
+  </div>
+</div>
+
+<div class="view" id="v-docs"><iframe id="if-docs" srcdoc="<meta charset=&quot;utf-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+<title>iHeartDogs RSS 파이프라인 · 노드 레퍼런스</title>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+<link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+<style>
+:root{
+  --bg:#000; --surface:#0c0c0c; --surface-2:#161616;
+  --ink:#fff; --muted:#8a8a8a; --faint:#565656;
+  --line:rgba(255,255,255,.15); --line-strong:rgba(255,255,255,.30);
+  --trg:#6f6f6f; --source:#f2f2f2; --logic:#b4b4b4; --ai:#8c8c8c; --store:#d6d6d6;
+  --trg-bg:rgba(255,255,255,.05); --source-bg:rgba(255,255,255,.05); --logic-bg:rgba(255,255,255,.05); --ai-bg:rgba(255,255,255,.05); --store-bg:rgba(255,255,255,.05);
+  --accent:#ffffff;
+  --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  --r:8px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:#000}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px 120px}
+code,.mono{font-family:var(--mono)}
+code{background:rgba(255,255,255,.06);border-radius:3px;padding:0 4px}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-strong)}
+
+/* ---- header ---- */
+header.top{padding:64px 0 30px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);font-weight:500}
+h1{font-family:var(--disp);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.01em;margin:14px 0 10px}
+h1 .sub{display:block;font-size:19px;font-weight:400;color:var(--muted);letter-spacing:0;margin-top:8px}
+.lede{color:var(--muted);max-width:680px;margin:18px 0 24px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:12px;padding:5px 11px;border:1px solid var(--line-strong);border-radius:999px;color:var(--muted);background:var(--surface)}
+.chip b{color:var(--ink);font-weight:500}
+
+/* ---- section heads ---- */
+.sec{margin-top:56px}
+.sec-h{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sec-h::after{content:&quot;&quot;;flex:1;height:1px;background:var(--line)}
+
+/* ---- pipeline rail ---- */
+.rail{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 22px 18px}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}
+.pill{display:flex;flex-direction:column;gap:3px;padding:9px 12px;border-radius:var(--r);border:1px solid var(--line-strong);background:var(--surface-2);min-width:118px;transition:transform .12s,box-shadow .12s,border-color .12s;cursor:pointer}
+.pill:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,255,255,.08);border-color:currentColor}
+.pill.on{box-shadow:0 0 0 2px var(--accent) inset}
+.pill .k{font-family:var(--mono);font-size:10px;letter-spacing:.05em;opacity:.7}
+.pill .nm{font-family:var(--disp);font-weight:500;font-size:13px;line-height:1.2}
+.pill .ty{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.pill .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+.arrow{align-self:center;color:var(--faint);font-family:var(--mono);font-size:15px;padding:0 1px}
+.pill.detached{border-style:dashed;opacity:.85}
+.brk{align-self:center;color:var(--logic);font-family:var(--mono);font-size:13px;padding:0 4px;font-weight:700}
+
+.cat-source{color:var(--source)} .cat-source .dot{background:var(--source)}
+.cat-logic{color:var(--logic)} .cat-logic .dot{background:var(--logic)}
+.cat-ai{color:var(--ai)} .cat-ai .dot{background:var(--ai)}
+.cat-store{color:var(--store)} .cat-store .dot{background:var(--store)}
+.cat-trg{color:var(--trg)} .cat-trg .dot{background:var(--trg)}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+.legend span{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;align-items:center}
+.legend .dot{width:8px;height:8px;border-radius:50%;margin-right:6px}
+
+.flowtext{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.9;word-break:keep-all}
+.flowtext b{color:var(--ink);font-weight:500}
+
+/* ---- node cards ---- */
+.node{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:26px 26px 24px;margin-top:18px;scroll-margin-top:18px;position:relative;overflow:hidden}
+.node::before{content:&quot;&quot;;position:absolute;left:0;top:0;bottom:0;width:4px;background:currentColor}
+.node.cat-source{color:var(--source)} .node.cat-logic{color:var(--logic)}
+.node.cat-ai{color:var(--ai)} .node.cat-store{color:var(--store)} .node.cat-trg{color:var(--trg)}
+.node>*{color:var(--ink)}
+.nhead{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.idx{font-family:var(--disp);font-weight:700;font-size:30px;line-height:1;color:currentColor;min-width:46px}
+.ntitle{flex:1;min-width:200px}
+.ntitle .nm{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--ink)}
+.ntitle .ty{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:3px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:500;padding:4px 9px;border-radius:6px;white-space:nowrap;align-self:center}
+.tag.cat-source{background:var(--source-bg);color:var(--source)}
+.tag.cat-logic{background:var(--logic-bg);color:var(--logic)}
+.tag.cat-ai{background:var(--ai-bg);color:var(--ai)}
+.tag.cat-store{background:var(--store-bg);color:var(--store)}
+.tag.cat-trg{background:var(--trg-bg);color:var(--trg)}
+
+.role{margin:18px 0 4px;color:var(--ink)}
+.io{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;font-family:var(--mono);font-size:11.5px}
+.io .b{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--muted)}
+.io .b b{color:var(--ink);font-weight:500}
+
+.lbl{font-family:var(--mono);font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:22px 0 9px}
+table.opt{width:100%;border-collapse:collapse;font-size:13px}
+table.opt th,table.opt td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.opt th{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+table.opt td:first-child{font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap}
+table.opt td.val{font-family:var(--mono);font-size:12px;color:var(--muted)}
+table.opt tr:last-child td{border-bottom:none}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.custom{list-style:none;padding:0;margin:8px 0 0}
+.custom li{padding:8px 0 8px 22px;position:relative;border-top:1px dashed var(--line);color:var(--ink)}
+.custom li:first-child{border-top:none}
+.custom li::before{content:&quot;›&quot;;position:absolute;left:4px;top:7px;color:currentColor;font-family:var(--mono);font-weight:700}
+.custom code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12px;border:1px solid var(--line)}
+
+.warn{margin-top:18px;background:var(--logic-bg);border:1px solid color-mix(in srgb,var(--logic) 35%,transparent);border-radius:var(--r);padding:13px 15px;font-size:13.5px;color:var(--ink)}
+.warn b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--logic);display:block;margin-bottom:5px}
+
+pre.snip{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--ink);margin:10px 0 0}
+pre.snip .c{color:var(--faint)}
+
+/* ---- concept / issue blocks ---- */
+.concept{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-top:14px}
+.concept h3{font-family:var(--mono);font-weight:700;font-size:14px;margin:0 0 6px;color:var(--ink)}
+.concept p{margin:0;color:var(--muted);font-size:13.5px}
+.concept .pin{font-family:var(--mono);font-size:11px;color:var(--ai);font-weight:500}
+
+.issue{display:flex;gap:14px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--logic);border-radius:10px;padding:16px 18px;margin-top:12px}
+.issue .n{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--logic);min-width:24px}
+.issue .t{flex:1}
+.issue .t b{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.issue .t p{margin:5px 0 0;font-size:13px;color:var(--muted)}
+.issue .t code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:11.5px;border:1px solid var(--line)}
+
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+@media(max-width:560px){
+  h1{font-size:30px}
+  .pill{flex:1 1 100%}
+  .arrow{display:none}
+  .idx{font-size:24px}
+  table.opt{min-width:380px}
+  table.opt td,table.opt th{padding:8px 10px}
+  table.opt td:last-child{white-space:normal;word-break:keep-all}
+}
+</style>
+
+<div class=&quot;wrap&quot;>
+
+<header class=&quot;top&quot;>
+  <div class=&quot;eyebrow&quot;>n8n workflow reference</div>
+  <h1>iHeartDogs RSS 파이프라인
+    <span class=&quot;sub&quot;>RSS 수집 → 한국어 번역 + AI 썸네일 생성 → NocoDB 적재까지, 노드 단위 해부도</span>
+  </h1>
+  <p class=&quot;lede&quot;>반려견 콘텐츠 피드를 매일 한 번 긁어와 토픽으로 거르고, LLM으로 한국어 요약·태그를 뽑은 뒤 생성형 이미지를 붙여 데이터베이스에 쌓는 11노드 자동화 흐름이다. 실행 순서대로 각 노드의 역할, 입출력, 옵션, 그리고 바꿔 끼울 수 있는 지점을 정리한다.</p>
+  <div class=&quot;meta&quot;>
+    <span class=&quot;chip&quot;><b>기능 노드</b> 11개</span>
+    <span class=&quot;chip&quot;><b>트리거</b> Schedule · 23h</span>
+    <span class=&quot;chip&quot;><b>LLM</b> Gemini 2.5 Flash (OpenRouter)</span>
+    <span class=&quot;chip&quot;><b>저장소</b> NocoDB</span>
+  </div>
+</header>
+
+<section class=&quot;sec&quot;>
+  <div class=&quot;sec-h&quot;>한눈에 보기 · 연결 구조</div>
+  <div class=&quot;rail&quot;>
+    <div class=&quot;flow&quot;>
+      <div class=&quot;pill cat-trg&quot; onclick=&quot;go('n0')&quot;>
+        <span class=&quot;k&quot;><span class=&quot;dot&quot;></span>TRG</span><span class=&quot;nm&quot;>Schedule Trigger</span><span class=&quot;ty&quot;>scheduleTrigger</span>
+      </div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-source&quot; onclick=&quot;go('n1')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>01</span><span class=&quot;nm&quot;>iHeartDogs RSS</span><span class=&quot;ty&quot;>rssFeedRead</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-logic&quot; onclick=&quot;go('n2')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>02</span><span class=&quot;nm&quot;>Filter Topic</span><span class=&quot;ty&quot;>if</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-logic&quot; onclick=&quot;go('n3')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>03</span><span class=&quot;nm&quot;>Select Topic</span><span class=&quot;ty&quot;>if</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-logic&quot; onclick=&quot;go('n4')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>04</span><span class=&quot;nm&quot;>Remove Duplicates</span><span class=&quot;ty&quot;>removeDuplicates</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-store&quot; onclick=&quot;go('n5')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>05</span><span class=&quot;nm&quot;>Check DB Duplicate</span><span class=&quot;ty&quot;>httpRequest</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-logic&quot; onclick=&quot;go('n6')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>06</span><span class=&quot;nm&quot;>Is New?</span><span class=&quot;ty&quot;>if</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-ai&quot; onclick=&quot;go('n7')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>07</span><span class=&quot;nm&quot;>AI Processing</span><span class=&quot;ty&quot;>httpRequest</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-ai&quot; onclick=&quot;go('n8')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>08</span><span class=&quot;nm&quot;>Parse JSON Backup</span><span class=&quot;ty&quot;>code</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-ai&quot; onclick=&quot;go('n9')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>09</span><span class=&quot;nm&quot;>Get Thumbnail</span><span class=&quot;ty&quot;>httpRequest</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-ai&quot; onclick=&quot;go('n10')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>10</span><span class=&quot;nm&quot;>Extract Image</span><span class=&quot;ty&quot;>code</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-store&quot; onclick=&quot;go('n11')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>11</span><span class=&quot;nm&quot;>Upload Thumbnail</span><span class=&quot;ty&quot;>httpRequest</span></div>
+      <span class=&quot;arrow&quot;>→</span>
+      <div class=&quot;pill cat-store&quot; onclick=&quot;go('n12')&quot;><span class=&quot;k&quot;><span class=&quot;dot&quot;></span>12</span><span class=&quot;nm&quot;>Create Record</span><span class=&quot;ty&quot;>httpRequest</span></div>
+    </div>
+    <div class=&quot;legend&quot;>
+      <span><span class=&quot;dot&quot; style=&quot;background:var(--trg)&quot;></span>트리거</span>
+      <span><span class=&quot;dot&quot; style=&quot;background:var(--source)&quot;></span>소스</span>
+      <span><span class=&quot;dot&quot; style=&quot;background:var(--logic)&quot;></span>로직 / 필터</span>
+      <span><span class=&quot;dot&quot; style=&quot;background:var(--ai)&quot;></span>AI / 변환</span>
+      <span><span class=&quot;dot&quot; style=&quot;background:var(--store)&quot;></span>저장</span>
+    </div>
+    <p class=&quot;flowtext&quot;>
+      데이터 경로: <b>Schedule Trigger</b> → iHeartDogs RSS → Filter Topic → Select Topic → Remove Duplicates → <b>Check DB Duplicate → Is New?</b> → AI Processing → Parse JSON Backup → Get Thumbnail → Extract Image → Upload Thumbnail → Create Record.
+      &amp;nbsp;DB 조회로 중복을 거르는 단계를 <b>AI 처리 앞</b>에 둬서, 이미 적재된 글이 LLM·이미지 비용을 쓰기 전에 멈추도록 했다. 세 IF 노드(Filter Topic·Select Topic·Is New?)의 false 갈래는 연결하지 않아 해당 글은 조용히 멈춘다.
+    </p>
+  </div>
+</section>
+
+<section class=&quot;sec&quot;>
+  <div class=&quot;sec-h&quot;>노드 상세</div>
+
+  <!-- 0 schedule -->
+  <div class=&quot;node cat-trg&quot; id=&quot;n0&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>TRG</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Schedule Trigger</div><div class=&quot;ty&quot;>n8n-nodes-base.scheduleTrigger · v1.1</div></div>
+      <div class=&quot;tag cat-trg&quot;>트리거</div>
+    </div>
+    <p class=&quot;role&quot;>워크플로우를 정해진 주기마다 자동으로 깨우는 진입 노드. <b>23시간 간격</b>으로 동작하며, 트리거이므로 입력은 받지 않고 출력만 내보내 RSS 읽기를 시작시킨다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>없음</b></span><span class=&quot;b&quot;>출력 <b>→ iHeartDogs RSS</b></span></div>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>rule.interval[].field</td><td class=&quot;val&quot;>hours</td><td>주기 단위 — seconds / minutes / hours / days / weeks / cron 중 선택</td></tr>
+      <tr><td>hoursInterval</td><td class=&quot;val&quot;>23</td><td>마지막 실행 기준 23시간이 지나면 다시 실행. 단위가 hours일 때 사용</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>매일 같은 시각에 돌리려면 field를 <code>cron</code>으로 바꾸고 식을 넣는다 — 예: <code>0 9 * * *</code> (매일 09:00).</li>
+      <li>시간 간격 방식은 &quot;직전 실행 + N시간&quot;으로 다음 실행을 잡기 때문에, 24가 아닌 값(예: 23)은 실행 시각이 매일 조금씩 앞당겨진다. 고정 시각이 필요하면 cron이 정확하다.</li>
+      <li>interval 배열에 항목을 추가하면 서로 다른 주기를 동시에 걸 수 있다.</li>
+    </ul>
+  </div>
+
+  <!-- 1 RSS -->
+  <div class=&quot;node cat-source&quot; id=&quot;n1&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>01</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>iHeartDogs RSS</div><div class=&quot;ty&quot;>n8n-nodes-base.rssFeedRead · v1.2</div></div>
+      <div class=&quot;tag cat-source&quot;>소스</div>
+    </div>
+    <p class=&quot;role&quot;>RSS 피드를 읽어 최신 글들을 각각 하나의 아이템으로 변환하는 소스 노드. 이후 모든 노드는 여기서 나온 아이템 묶음을 순서대로 받아 처리한다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>트리거</b></span><span class=&quot;b&quot;>출력 <b>글 아이템 ×N</b></span></div>
+
+    <div class=&quot;lbl&quot;>RSS가 어떻게 동작하나</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      RSS 피드는 사이트가 발행하는 <b>XML 문서</b>다. 문서 안에는 <code>&amp;lt;channel&amp;gt;</code>이 있고 그 안에 글 하나당 <code>&amp;lt;item&amp;gt;</code> 요소가 들어간다. 각 item은 <code>&amp;lt;title&amp;gt; &amp;lt;link&amp;gt; &amp;lt;description&amp;gt; &amp;lt;guid&amp;gt; &amp;lt;pubDate&amp;gt;</code> 같은 태그를 갖는다. rssFeedRead 노드는 이 XML을 받아 파싱해서 태그를 JSON 키로 바꾼다 — <code>&amp;lt;description&amp;gt;</code>은 <code>contentSnippet</code>, <code>&amp;lt;pubDate&amp;gt;</code>는 표준화된 <code>isoDate</code>로 변환되는 식이다. 즉 &quot;JSON 리턴&quot;은 피드가 JSON을 주는 게 아니라, 노드가 XML을 읽어 JSON 아이템으로 옮긴 결과다.
+    </p>
+
+    <div class=&quot;lbl&quot;>반환 개수 규칙</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      개수는 노드가 아니라 <b>발행하는 사이트가 정한다</b>. 피드 XML에는 &quot;가장 최근 N개&quot;만 담기는 롤링 윈도우 방식이라, 새 글이 올라오면 가장 오래된 글이 피드에서 밀려난다. iHeartDogs는 WordPress 기반이고, WordPress는 <code>설정 → 읽기 → &quot;구독 피드에 보여줄 최근 항목 수&quot;</code>로 이 값을 정한다(기본 10, 사이트가 더 크게 설정 가능). 그래서 한 번 읽을 때 들어오는 개수는 그 사이트 피드 설정값과 같다. 노드는 그 시점 XML에 담긴 item 전부를 그대로 아이템으로 만든다.
+    </p>
+
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>url</td><td class=&quot;val&quot;>https://iheartdogs.com/feed</td><td>읽어올 피드 주소</td></tr>
+      <tr><td>options</td><td class=&quot;val&quot;>{}</td><td>SSL 무시·커스텀 필드 등 부가 옵션</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>출력 필드 (다음 노드에서 쓰는 키)</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>필드</th><th>의미</th></tr>
+      <tr><td>title</td><td class=&quot;val&quot;>글 제목</td></tr>
+      <tr><td>contentSnippet</td><td class=&quot;val&quot;>본문 텍스트(태그 제거된 요약)</td></tr>
+      <tr><td>link</td><td class=&quot;val&quot;>원문 URL → 최종 레코드의 source_url</td></tr>
+      <tr><td>guid</td><td class=&quot;val&quot;>글 고유 식별자 → 중복 제거 키 (아래 설명)</td></tr>
+      <tr><td>isoDate</td><td class=&quot;val&quot;>발행일시(ISO 8601) → pub_date</td></tr>
+    </table>
+
+    <div class=&quot;lbl&quot;>guid란 무엇인가</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      guid(globally unique identifier)는 RSS 규격에서 <b>글 하나를 영구히 식별하는 문자열</b>이다. WordPress는 보통 글의 영구 ID(예: <code>https://iheartdogs.com/?p=12345</code>)를 guid로 쓴다. 규격상 같은 글은 언제 읽어도 같은 guid를 가져야 하므로, 한 글의 guid는 <b>발행 후 바뀌지 않는 불변 값</b>으로 다루면 된다. 글 내용을 수정·재발행해도 guid는 유지된다. guid가 바뀌는 경우는 사실상 사이트가 guid 생성 방식 자체를 바꾸거나(예: 도메인 이전 후 재생성) 글을 삭제 후 새로 올리는 경우뿐이다. 이 불변성 덕분에 다음 단계의 중복 제거가 &quot;같은 글&quot;을 안정적으로 알아본다. guid가 없는 일부 피드를 대비해 이 파이프라인은 <code>guid || link</code>로 보조 키를 둔다.
+    </p>
+
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li><code>url</code>만 바꾸면 어떤 피드로도 재사용 가능 — Synthtopia, 특정 블로그 등.</li>
+      <li>여러 피드를 합치려면 RSS 노드를 복수로 두고 <code>Merge</code> 노드로 모은다.</li>
+      <li>한 번에 더/덜 받고 싶으면 노드가 아니라 발행 사이트의 피드 항목 수 설정을 봐야 한다(외부 사이트는 조정 불가).</li>
+    </ul>
+  </div>
+
+  <!-- 2 Filter Topic -->
+  <div class=&quot;node cat-logic&quot; id=&quot;n2&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>02</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Filter Topic</div><div class=&quot;ty&quot;>n8n-nodes-base.if · v2.2</div></div>
+      <div class=&quot;tag cat-logic&quot;>로직 · 1차 필터</div>
+    </div>
+    <p class=&quot;role&quot;>RSS 노드가 넘긴 각 글에 대해, 제목 + 본문에 반려견 관련 키워드가 하나라도 있는지 정규식으로 검사한다. 조건이 참인 글만 통과시키는 1차 관문이다. IF 노드는 true/false 두 갈래 출력을 갖지만 이 파이프라인은 true 갈래만 이어 <b>필터로</b> 쓴다(거짓 글은 흘려보내지 않고 멈춤).</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>RSS 아이템</b></span><span class=&quot;b&quot;>true <b>→ Select Topic</b></span><span class=&quot;b&quot;>false <b>버림</b></span></div>
+    <div class=&quot;lbl&quot;>무엇을, 어떻게 거르나</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      거르는 대상은 <b>바로 앞 노드(iHeartDogs RSS)가 내보낸 글 아이템들</b>이다. 노드는 들어온 아이템을 <b>하나씩</b> 꺼내, 각 아이템의 <code>$json</code>(그 글의 title·contentSnippet 등)을 조건식에 대입해 평가한다. 여기서 <code>leftValue</code>는 그 자체가 true/false를 돌려주는 정규식 표현식이고, <code>operator.type = boolean / operation = true</code>는 &quot;그 결과가 불리언 <code>true</code>인가&quot;를 판정하는 비교 규칙이다. 결과가 true면 그 아이템을 true 출력으로, 아니면 false 출력으로 보낸다. 즉 거르는 단위는 묶음이 아니라 <b>아이템 하나하나</b>이며, 통과 여부는 각 글에 대해 독립적으로 결정된다.
+    </p>
+    <div class=&quot;lbl&quot;>조건식</div>
+    <pre class=&quot;snip&quot;><span class=&quot;c&quot;>// 각 글의 title + contentSnippet 에 키워드 매칭 (대소문자 무시)</span>
+/dog|puppy|breed|training|health|vet|nutrition|
+ food|adoption|rescue|behavior|safety|recall/i
+  .test(($json.title||'') + ' ' + ($json.contentSnippet||''))</pre>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>operator.type</td><td class=&quot;val&quot;>boolean</td><td>leftValue를 불리언으로 보고 비교한다는 뜻. 함께 쓰인 operation <code>true</code>는 &quot;값이 true일 때 통과&quot;</td></tr>
+      <tr><td>operation</td><td class=&quot;val&quot;>true</td><td>singleValue 비교 — leftValue가 그대로 true면 참, 아니면 거짓</td></tr>
+      <tr><td>combinator</td><td class=&quot;val&quot;>and</td><td>조건이 여러 개일 때 결합 방식(모두 참이어야 통과)</td></tr>
+      <tr><td>typeValidation</td><td class=&quot;val&quot;>strict</td><td>아래 설명</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>typeValidation = strict 의 의미</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      strict는 <b>타입 자동 변환을 하지 않는</b> 모드다. 비교 대상 값이 기대한 타입(여기선 불리언)과 다르면 n8n이 몰래 형변환해서 어물쩍 넘기지 않고 <b>오류를 낸다</b>. 예를 들어 leftValue가 문자열 <code>&quot;true&quot;</code>나 숫자 <code>1</code>처럼 불리언이 아니면, loose 모드는 적당히 true로 바꿔 통과시키지만 strict는 멈추고 에러를 표시한다. 덕분에 &quot;왜 통과됐지/안 됐지&quot;가 형변환 때문에 흐려지지 않고, 조건이 의도대로 불리언으로만 평가되도록 강제된다. 이 노드의 leftValue는 정규식 <code>.test()</code> 결과라 항상 진짜 불리언이므로 strict와 잘 맞는다.
+    </p>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>정규식의 <code>키워드|키워드</code> 목록만 손보면 관심 주제를 넓히거나 좁힐 수 있다.</li>
+      <li>버려지는 false 갈래를 따로 연결하면 &quot;탈락 로그 시트&quot; 같은 분기를 추가할 수 있다 — 과제의 &quot;양쪽 경로 실행&quot; 요건을 채우는 방법.</li>
+    </ul>
+  </div>
+
+  <!-- 3 Select Topic -->
+  <div class=&quot;node cat-logic&quot; id=&quot;n3&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>03</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Select Topic</div><div class=&quot;ty&quot;>n8n-nodes-base.if · v2.2</div></div>
+      <div class=&quot;tag cat-logic&quot;>로직 · 2차 필터</div>
+    </div>
+    <p class=&quot;role&quot;>1차 통과분 중 <b>하나의 세부 토픽만</b> 추가로 골라낸다. 코드 안 <code>TOPIC</code> 상수(현재 <code>'training'</code>)가 가리키는 정규식으로 제목·본문을 다시 검사한다. 토픽별 정규식이 MAP에 미리 정의돼 있어 값 하나만 바꾸면 대상 주제가 바뀐다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Filter Topic(true)</b></span><span class=&quot;b&quot;>true <b>→ Remove Duplicates</b></span><span class=&quot;b&quot;>false <b>버림</b></span></div>
+    <div class=&quot;lbl&quot;>토픽 맵</div>
+    <pre class=&quot;snip&quot;>const TOPIC = 'training';   <span class=&quot;c&quot;>// 이 값만 바꾸면 됨</span>
+health    → /health|vet|disease|symptom|illness/i
+training  → /training|train|obedience|behavior/i
+adoption  → /adoption|adopt|rescue|shelter/i
+nutrition → /nutrition|food|diet|feeding|treat/i
+safety    → /safety|recall|warning|hazard|danger/i
+breed     → /breed|puppy|breeds/i</pre>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li><code>TOPIC</code> 값을 <code>health · training · adoption · nutrition · safety · breed</code> 중 하나로 교체.</li>
+      <li>MAP에 줄을 추가하면 새 토픽을 만들 수 있다(키 + 정규식).</li>
+      <li>여러 토픽을 동시에 받으려면 이 노드를 <code>Switch</code>로 바꿔 토픽별 갈래로 분기한다.</li>
+    </ul>
+  </div>
+
+  <!-- 4 Remove Duplicates -->
+  <div class=&quot;node cat-logic&quot; id=&quot;n4&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>04</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Remove Duplicates</div><div class=&quot;ty&quot;>n8n-nodes-base.removeDuplicates · v2</div></div>
+      <div class=&quot;tag cat-logic&quot;>로직 · 중복 제거</div>
+    </div>
+    <p class=&quot;role&quot;>이전 실행에서 이미 처리한 글을 걸러낸다. n8n이 &quot;본 적 있는 키&quot;를 데이터베이스에 기억해 두고, 같은 키가 다시 오면 버린다. 매일 같은 피드를 읽어도 <b>새 글만</b> LLM·이미지 단계로 넘겨 비용과 중복 적재를 막는 노드.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Select Topic(true)</b></span><span class=&quot;b&quot;>출력 <b>새 글만 → Check DB Duplicate</b></span></div>
+
+    <div class=&quot;lbl&quot;>&quot;본 적 있는 키&quot;는 어디에 · 얼마나 저장되나</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      이 기억은 워크플로우 실행 데이터가 아니라 <b>n8n 인스턴스 자체의 데이터베이스</b>에 들어간다(기본 설치는 SQLite, 보통은 Postgres). 저장되는 건 글 전체가 아니라 <b>dedupeValue로 평가된 키 문자열</b>(여기선 각 글의 guid)뿐이라 용량 부담이 작다. 이 저장소는 실행과 실행 사이에 계속 유지되며, 그래서 &quot;이전 실행에서 봤는지&quot;를 비교할 수 있다.
+    </p>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      저장 범위와 한도는 노드 옵션으로 조정한다. <b>Scope</b>는 기본 <code>Node</code>(이 노드만의 독립 저장)이고 <code>Workflow</code>로 바꾸면 같은 워크플로우의 다른 Remove Duplicates 노드와 기억을 공유한다. <b>History Size</b>는 기억할 키 개수 상한으로 <b>기본 10,000개</b>다. 즉 가장 최근 키 1만 개까지 추적하며, 필요하면 이 값을 키워 더 멀리까지 중복을 막을 수 있다.
+    </p>
+
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>operation</td><td class=&quot;val&quot;>removeItemsSeenInPreviousExecutions</td><td>현재 입력을 DB에 누적된 과거 키와 비교해 중복 제거</td></tr>
+      <tr><td>dedupeValue</td><td class=&quot;val&quot;>{{ $json.guid || $json.link }}</td><td>중복 판단 기준 키 — guid가 비면 link로 대체</td></tr>
+      <tr><td>Scope</td><td class=&quot;val&quot;>Node (기본)</td><td>이 노드 전용 저장 / Workflow는 노드 간 공유</td></tr>
+      <tr><td>History Size</td><td class=&quot;val&quot;>10,000 (기본)</td><td>추적할 키 개수 상한</td></tr>
+    </table>
+
+    <div class=&quot;lbl&quot;>기억 초기화 방법</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      테스트로 같은 글을 다시 흘리고 싶을 때는 저장된 키를 비워야 한다. 이때는 같은 노드를 잠깐 <code>operation = Clear Deduplication History</code> + <code>Mode = Clean Database</code>로 바꿔 한 번 실행하면 그 노드(또는 Scope에 따라 워크플로우)의 키 저장소가 통째로 지워진다. 그 뒤 다시 원래 operation으로 돌리면, 다음 실행은 모든 글을 &quot;새 글&quot;로 보고 처음부터 다시 쌓는다.
+    </p>
+
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>피드의 guid가 불안정하면 dedupeValue를 <code>$json.link</code> 단독이나 제목 해시 등으로 바꾼다.</li>
+      <li>아주 오래된 글까지 영구히 막아야 하면 History Size를 올린다(저장 키가 늘어나는 만큼 DB도 커진다).</li>
+      <li>&quot;새 글이면 통과&quot;가 아니라 &quot;발행일이 더 최신이면 통과&quot; 같은 기준이 필요하면 Keep Items Where를 날짜/숫자 비교로 바꿀 수 있다.</li>
+    </ul>
+  </div>
+
+  <!-- 5 Check DB Duplicate -->
+  <div class=&quot;node cat-store&quot; id=&quot;n5&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>05</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Check DB Duplicate</div><div class=&quot;ty&quot;>n8n-nodes-base.httpRequest · v4.4</div></div>
+      <div class=&quot;tag cat-store&quot;>검증 · DB 조회</div>
+    </div>
+    <p class=&quot;role&quot;>AI 처리에 들어가기 전, NocoDB 테이블을 <b>실제로 조회</b>해 같은 글이 이미 적재돼 있는지 확인한다. 앞쪽 Remove Duplicates가 n8n 내부 히스토리를 보는 1차 방어라면, 이 노드는 <b>DB의 실제 데이터</b>를 기준으로 삼는 2차 방어다. <code>link</code>가 일치하는 레코드를 1건만 찾아 그 존재 여부를 다음 노드로 넘긴다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Remove Duplicates</b></span><span class=&quot;b&quot;>출력 <b>조회 결과(list) → Is New?</b></span><span class=&quot;b&quot;>인증 <b>NocoDB Token</b></span></div>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>method · url</td><td class=&quot;val&quot;>GET …/tables/{table}/records</td><td>레코드 목록 조회 엔드포인트(고정 URL)</td></tr>
+      <tr><td>where</td><td class=&quot;val&quot;>(source_url,eq,{{ $json.link }})</td><td>이번 글의 link와 source_url이 같은 레코드만 필터</td></tr>
+      <tr><td>limit</td><td class=&quot;val&quot;>1</td><td>존재 여부만 보면 되므로 1건이면 충분</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>$json.link 으로 조회하는 이유</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      이 위치에서 <code>$json</code>은 바로 앞 <b>Remove Duplicates의 출력</b>(원본 RSS 아이템)이라 거기 <code>link</code> 필드가 그대로 있다. 그래서 별도 노드 참조 없이 <code>$json.link</code>로 곧장 조회한다 — 아직 실행되지 않은 뒤쪽 노드(Parse JSON Backup 등)를 참조하면 안 된다.
+    </p>
+    <div class=&quot;lbl&quot;>왜 두 단계로 중복을 막나</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      Remove Duplicates(히스토리)는 1차 방어지만, 히스토리와 DB가 어긋난 경우 — 레코드 수동 삭제, 히스토리 초기화, 다른 경로로 삽입 등 — 를 놓칠 수 있다. 이 조회를 <b>AI 처리 앞</b>에 둔 덕분에, 그런 경우의 중복 글도 LLM·이미지 비용을 쓰기 전에 걸러진다. 두 방어가 상호 보완한다.
+    </p>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>매칭을 더 엄격히 하려면 <code>link</code> 대신 <code>guid</code>로 조회하거나 where에 조건을 추가한다.</li>
+      <li><code>link</code>에 쿼리스트링(<code>?</code>·<code>&amp;</code>·<code>,</code>)이 섞이는 피드라면 where 값 인코딩을 점검한다(iHeartDogs 퍼머링크는 대개 깨끗).</li>
+    </ul>
+  </div>
+
+  <!-- 6 Is New? -->
+  <div class=&quot;node cat-logic&quot; id=&quot;n6&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>06</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Is New?</div><div class=&quot;ty&quot;>n8n-nodes-base.if · v2.2</div></div>
+      <div class=&quot;tag cat-logic&quot;>로직 · 신규 판정</div>
+    </div>
+    <p class=&quot;role&quot;>조회 결과가 비어 있으면(<code>list.length === 0</code>) &quot;DB에 없는 새 글&quot;로 보고 true 갈래로 통과시켜 AI 처리로 보낸다. 결과가 있으면 이미 적재된 글이므로 false 갈래로 빠지는데, 이 갈래는 연결돼 있지 않아 해당 글은 조용히 멈춘다(비용 발생 전 차단).</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Check DB Duplicate</b></span><span class=&quot;b&quot;>true <b>→ AI Processing</b></span><span class=&quot;b&quot;>false <b>멈춤(중복)</b></span></div>
+    <div class=&quot;lbl&quot;>조건식</div>
+    <pre class=&quot;snip&quot;><span class=&quot;c&quot;>// 조회 응답의 list 가 비었으면 신규</span>
+={{ ($json.list || []).length === 0 }}</pre>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>응답 구조가 <code>body.list</code> 밑에 들어오면(Full Response 켠 경우) <code>$json.body.list</code>로 맞춘다.</li>
+      <li>&quot;항상 신규로만 통과&quot;하면 조회가 빈 list를 잘못 반환한 것이니 Check DB Duplicate의 where·응답을 먼저 확인한다.</li>
+      <li>중복 글을 기록하고 싶으면 false 갈래를 로그 노드(Set 등)로 연결한다 — 현재는 의도적으로 비워 둠.</li>
+    </ul>
+  </div>
+
+  <!-- 7 AI Processing -->
+  <div class=&quot;node cat-ai&quot; id=&quot;n7&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>07</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>OpenClaw AI Processing</div><div class=&quot;ty&quot;>n8n-nodes-base.httpRequest · v4.2</div></div>
+      <div class=&quot;tag cat-ai&quot;>AI · 번역/요약</div>
+    </div>
+    <p class=&quot;role&quot;>OpenRouter 채팅 API를 호출해 영문 기사를 <b>한국어 JSON</b>으로 바꾼다. 시스템 프롬프트가 &quot;반려견 전문가&quot; 역할을 잡고 <code>title_kr · summary_kr · tags</code> 세 키만 가진 JSON으로만 답하게 강제한다. 응답 포맷을 <code>json_object</code>로 못 박아 다음 파싱 단계의 안정성을 높인다. 앞단(Is New?)에서 신규 글만 들어오므로 여기서부터 비용이 발생한다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Is New?(true) — 신규 글</b></span><span class=&quot;b&quot;>출력 <b>LLM 응답(JSON 문자열)</b></span><span class=&quot;b&quot;>인증 <b>Bearer</b></span></div>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>url</td><td class=&quot;val&quot;>openrouter.ai/api/v1/chat/completions</td><td>OpenRouter 채팅 엔드포인트</td></tr>
+      <tr><td>model</td><td class=&quot;val&quot;>google/gemini-2.5-flash-lite</td><td>저비용·빠른 텍스트 모델</td></tr>
+      <tr><td>response_format</td><td class=&quot;val&quot;>json_object</td><td>JSON으로만 응답 강제</td></tr>
+      <tr><td>batching.batchInterval</td><td class=&quot;val&quot;>5000ms</td><td>요청 묶음 사이 5초 간격 — 아래 설명</td></tr>
+      <tr><td>retryOnFail / maxTries / wait</td><td class=&quot;val&quot;>on / 3 / 3000ms</td><td>실패 시 3초 간격 3회 재시도 — 아래 설명</td></tr>
+    </table>
+
+    <div class=&quot;lbl&quot;>배칭(batching)이란</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      이 노드에는 글이 여러 개(통과한 신규 글 N개)가 한꺼번에 들어온다. 배칭을 안 쓰면 n8n은 그 N개에 대한 API 호출을 <b>거의 동시에 쏟아붓는다</b> — 외부 API의 분당 호출 한도(rate limit)를 순식간에 넘겨 429 오류를 부르기 쉽다. 배칭은 들어온 아이템을 <b>여러 묶음(batch)으로 쪼개 순차 처리</b>하고, 묶음과 묶음 사이에 <code>batchInterval</code>만큼 쉰다. 여기선 5초 간격을 둬서 호출이 시간에 걸쳐 고르게 퍼지도록 한다. 글이 많을수록 이 간격을 늘리면 한도를 안전하게 지킬 수 있다(대신 전체 실행은 느려진다).
+    </p>
+
+    <div class=&quot;lbl&quot;>재시도(retry)란 · &quot;실패&quot;의 정의</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      HTTP 요청 노드에서 &quot;실패&quot;는 <b>그 호출이 정상 응답으로 끝나지 못한 상태</b>를 뜻한다 — 구체적으로 <code>4xx·5xx</code> 같은 비정상 상태코드, 연결 타임아웃, 네트워크 끊김, API 측 오류 응답 등이다. <code>retryOnFail</code>이 켜져 있으면 그런 실패가 났을 때 n8n이 그 호출을 <b>바로 포기하지 않고 다시 시도</b>한다. <code>maxTries = 3</code>은 처음 1회 + 재시도를 포함해 최대 3번까지 굴린다는 뜻이고, <code>waitBetweenTries = 3000</code>은 시도 사이에 3초를 쉰다는 뜻이다(일시적 한도 초과·순간 장애가 그 사이 풀리길 기대). 3번을 다 쓰고도 실패하면 그 아이템은 진짜 에러로 처리되어 워크플로우가 멈춘다(continueOnFail를 켜지 않은 경우).
+    </p>
+
+    <div class=&quot;lbl&quot;>프롬프트 (시스템)</div>
+    <pre class=&quot;snip&quot;>너는 반려견 전문가야. 영문 기사를 분석해서
+title_kr, summary_kr, tags 세 키만 가진 JSON 객체로만 답변해.
+summary_kr은 반드시 3문장(3줄) 이내로 작성해.
+코드펜스나 다른 텍스트는 절대 붙이지 마.</pre>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li><code>model</code>을 교체해 품질/비용을 조절(더 정확한 모델로 업그레이드 등).</li>
+      <li>요약 길이·말투·추가 필드는 시스템 프롬프트에서 조정. 단 출력 키를 바꾸면 Parse JSON Backup·NocoDB 노드도 같이 맞춰야 한다.</li>
+      <li>429가 자주 나면 <code>batchInterval</code>을, 순간 장애가 잦으면 <code>waitBetweenTries</code>·<code>maxTries</code>를 키운다.</li>
+    </ul>
+  </div>
+
+  <!-- 8 Parse JSON Backup -->
+  <div class=&quot;node cat-ai&quot; id=&quot;n8&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>08</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Parse JSON Backup</div><div class=&quot;ty&quot;>n8n-nodes-base.code · v2</div></div>
+      <div class=&quot;tag cat-ai&quot;>변환 · 파싱</div>
+    </div>
+    <p class=&quot;role&quot;>LLM 응답 문자열을 실제 객체로 파싱하고, 원본 글의 메타(링크·발행일)와 합쳐 다음 단계가 쓰기 좋은 형태로 정리한다. 코드펜스를 제거하고 <b>중괄호 본체만 뽑아</b> <code>JSON.parse</code>하며, 파싱에 실패하거나 추적 키가 없는 아이템은 건너뛰어 깨진 레코드를 막는다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>LLM 응답</b></span><span class=&quot;b&quot;>출력 <b>title_kr·summary_kr·tags·source_url·pub_date</b></span></div>
+    <div class=&quot;lbl&quot;>하는 일</div>
+    <ul class=&quot;custom&quot;>
+      <li>응답에서 <code>choices[0].message.content</code> 추출 → 코드펜스(``` / ```json) 제거.</li>
+      <li><b>중괄호 본체 추출</b>: <code>{ … }</code> 패턴만 잘라내, LLM이 JSON 앞뒤에 잡텍스트를 붙여도 본체만 파싱한다.</li>
+      <li><code>tags</code> 배열은 <code>&quot;, &quot;</code>로 합쳐 문자열화.</li>
+      <li>LLM 직전 노드인 <code>Remove Duplicates</code> 출력과 짝지어 <code>source_url</code>(link, 없으면 guid)·<code>pub_date</code>(isoDate, 없으면 pubDate)를 붙인다.</li>
+      <li><b>추적 키 없으면 스킵</b>: link·guid 어느 쪽으로도 source_url을 못 잡으면 그 아이템을 버린다 → 다음 Check DB Duplicate가 빈 값으로 조회하는 사고 차단.</li>
+      <li>출력 아이템에 <code>pairedItem</code>을 달아 이후 노드(Get Thumbnail·Extract·Create Record)가 원본을 정확히 추적하게 한다.</li>
+    </ul>
+    <div class=&quot;lbl&quot;>정합성 — 원본 메타를 어떻게 맞추나</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      원본 link·발행일은 LLM 응답에 없으므로 거슬러 가져와야 한다. 이때 기준은 <b>LLM에 직접 들어간 노드(<code>Remove Duplicates</code>)</b>여야 한다 — 그 사이 Filter·Select에서 글이 빠지는 앞쪽 노드를 기준으로 삼으면 순서가 어긋난다. 코드는 <code>$('Remove Duplicates').itemMatching(index)</code>로 pairedItem 체인을 거슬러 정확히 짝짓고, 그게 <b>예외를 던지든 undefined를 반환하든</b> 곧바로 같은 index의 <code>.all()[index]</code>로 폴백해 메타가 비는 일을 막는다.
+    </p>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>NocoDB에 메타를 더 넣으려면 반환 객체에 필드를 추가.</li>
+      <li>태그를 배열 그대로 저장하려면 <code>.join</code>을 빼고 NocoDB 필드 타입을 맞춘다.</li>
+      <li>빈 값을 빈칸(null)으로 남기려면 <code>|| ''</code>를 <code>|| null</code>로 바꾼다(현재는 빈 문자열로 채움).</li>
+    </ul>
+  </div>
+
+  <!-- 9 Get Thumbnail -->
+  <div class=&quot;node cat-ai&quot; id=&quot;n9&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>09</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Get Thumbnail</div><div class=&quot;ty&quot;>n8n-nodes-base.httpRequest · v4.4</div></div>
+      <div class=&quot;tag cat-ai&quot;>AI · 이미지 생성</div>
+    </div>
+    <p class=&quot;role&quot;>한국어 제목과 태그를 바탕으로 16:9 블로그 썸네일을 생성한다. 이미지 모델에 &quot;따뜻하고 친근한, 텍스트·로고 없는 귀여운 강아지 일러스트&quot; 스타일을 지시하는 프롬프트를 글마다 동적으로 조립해 호출한다. 배칭·재시도는 07과 같은 원리로 동작한다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>title_kr·tags</b></span><span class=&quot;b&quot;>출력 <b>이미지(data URL 포함 응답)</b></span></div>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>model</td><td class=&quot;val&quot;>google/gemini-2.5-flash-image</td><td>이미지 생성 모델</td></tr>
+      <tr><td>modalities</td><td class=&quot;val&quot;>[&quot;image&quot;,&quot;text&quot;]</td><td>이미지 응답 활성화</td></tr>
+      <tr><td>image_config.aspect_ratio</td><td class=&quot;val&quot;>16:9</td><td>썸네일 비율</td></tr>
+      <tr><td>batching / retry</td><td class=&quot;val&quot;>5000ms · 3회</td><td>레이트리밋·실패 대비</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>프롬프트 문구를 바꿔 화풍(픽셀아트, 수채화 등)이나 분위기를 조정.</li>
+      <li><code>aspect_ratio</code>를 <code>1:1</code> 등으로 바꿔 다른 용도 썸네일 생성.</li>
+      <li>이미지가 불필요하면 09·10을 건너뛰고 08 → 11로 바로 연결.</li>
+    </ul>
+  </div>
+
+  <!-- 10 Extract Image -->
+  <div class=&quot;node cat-ai&quot; id=&quot;n10&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>10</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Extract Image</div><div class=&quot;ty&quot;>n8n-nodes-base.code · v2</div></div>
+      <div class=&quot;tag cat-ai&quot;>변환 · 바이너리화</div>
+    </div>
+    <p class=&quot;role&quot;>LLM이 돌려준 base64 데이터 URL에서 이미지를 꺼내 n8n <b>바이너리 첨부</b>(<code>thumbnail</code>)로 바꾼다. 동시에 08의 텍스트 메타를 다시 결합하고, <code>pairedItem</code>으로 어느 글에서 온 이미지인지 추적을 유지한다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>이미지 응답 + Parse JSON Backup</b></span><span class=&quot;b&quot;>출력 <b>json 메타 + binary.thumbnail</b></span></div>
+    <div class=&quot;lbl&quot;>하는 일</div>
+    <ul class=&quot;custom&quot;>
+      <li><code>choices[0].message.images[0]</code>의 data URL → base64 디코드 → <code>Buffer</code>.</li>
+      <li><code>prepareBinaryData</code>로 <code>thumb_{i}.png</code> 바이너리 생성.</li>
+      <li>이미지가 없는 아이템은 건너뛴다(continue) → 깨진 레코드 방지.</li>
+    </ul>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>파일명 규칙(<code>thumb_${i}.png</code>)이나 MIME(<code>image/png</code>) 변경 가능.</li>
+      <li>바이너리 필드명을 바꾸면 11의 <code>inputDataFieldName</code>도 같이 맞춘다.</li>
+    </ul>
+  </div>
+
+  <!-- 11 Upload Thumbnail -->
+  <div class=&quot;node cat-store&quot; id=&quot;n11&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>11</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Upload Thumbnail</div><div class=&quot;ty&quot;>n8n-nodes-base.httpRequest · v4.4</div></div>
+      <div class=&quot;tag cat-store&quot;>저장 · 업로드</div>
+    </div>
+    <p class=&quot;role&quot;>바이너리 썸네일의 <b>실제 이미지 바이트</b>를 NocoDB 스토리지에 멀티파트로 올린다. 응답으로 돌아오는 건 이미지가 아니라, 방금 저장된 파일을 가리키는 <b>파일 디스크립터(JSON)</b>다 — 저장 경로·서명 URL·MIME·크기·원래 파일명 같은 메타. 다음 노드는 이 디스크립터를 레코드의 첨부 필드에 그대로 꽂는다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>binary.thumbnail (바이트)</b></span><span class=&quot;b&quot;>출력 <b>파일 디스크립터 JSON</b></span><span class=&quot;b&quot;>인증 <b>NocoDB Token</b></span></div>
+    <div class=&quot;lbl&quot;>두 단계로 나눈 이유</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      NocoDB의 첨부 필드는 이미지 바이트를 레코드 안에 직접 담지 않는다. 대신 &quot;파일은 스토리지에 두고, 레코드에는 그 파일을 가리키는 참조(디스크립터)만 저장&quot;하는 구조다. 그래서 <b>① 먼저 파일을 올려 디스크립터를 받고 → ② 그 디스크립터를 레코드에 붙이는</b> 두 단계가 필요하다. 11이 ①, 12가 ②를 맡는다.
+    </p>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>url</td><td class=&quot;val&quot;>…/api/v2/storage/upload</td><td>NocoDB 파일 업로드 엔드포인트(바이트 수신)</td></tr>
+      <tr><td>contentType</td><td class=&quot;val&quot;>multipart-form-data</td><td>바이너리 파일 전송 방식</td></tr>
+      <tr><td>formBinaryData · name</td><td class=&quot;val&quot;>file ← thumbnail</td><td>올릴 바이너리 필드 지정</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>다른 저장소(S3, Synology 파일스테이션 등)로 바꾸려면 엔드포인트·인증·폼 필드를 교체한다(이 경우 12의 첨부 형식도 그 저장소 규격에 맞춰야 한다).</li>
+    </ul>
+  </div>
+
+  <!-- 12 Create Record -->
+  <div class=&quot;node cat-store&quot; id=&quot;n12&quot;>
+    <div class=&quot;nhead&quot;>
+      <div class=&quot;idx&quot;>12</div>
+      <div class=&quot;ntitle&quot;><div class=&quot;nm&quot;>Create Record Nocodb</div><div class=&quot;ty&quot;>n8n-nodes-base.httpRequest · v4.4</div></div>
+      <div class=&quot;tag cat-store&quot;>저장 · 적재</div>
+    </div>
+    <p class=&quot;role&quot;>파이프라인의 종착점. 여기까지 온 글은 앞단 Is New?에서 이미 &quot;신규&quot;로 걸러진 것이다. 한국어 제목·요약·태그·원문링크·발행일과 11에서 받은 썸네일 디스크립터를 묶어 NocoDB 테이블에 <b>새 레코드 한 줄</b>을 만든다. 각 값은 <code>JSON.stringify(… ?? null)</code>로 감싸 빈 값도 안전하게 들어가게 한다.</p>
+    <div class=&quot;io&quot;><span class=&quot;b&quot;>입력 <b>Upload Thumbnail</b></span><span class=&quot;b&quot;>출력 <b>생성된 레코드</b></span></div>
+    <div class=&quot;lbl&quot;>thumbnail 필드에 실제로 저장되는 것</div>
+    <p style=&quot;color:var(--muted);font-size:13.5px;margin:0 0 4px&quot;>
+      이미지 바이트는 이미 11에서 NocoDB 스토리지에 올라가 있다. 그래서 이 노드의 <code>thumbnail</code> 필드에는 이미지 자체가 아니라, 그 저장된 파일을 가리키는 <b>디스크립터(경로·서명 URL·MIME·크기 등)가 담긴 객체</b>가 들어간다. 즉 레코드는 이미지를 품는 게 아니라 <b>이미지로 가는 참조(링크)를 품는</b> 셈이다. NocoDB의 첨부 필드는 이 디스크립터를 <b>배열</b> 형태로 요구하므로, 단일 객체면 <code>Array.isArray</code> 검사로 배열에 감싸 넣는다. 나중에 NocoDB UI는 이 참조를 따라가 스토리지의 실제 이미지를 썸네일로 보여준다.
+    </p>
+    <div class=&quot;lbl&quot;>기록되는 필드</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>필드</th><th>출처</th></tr>
+      <tr><td>title_kr</td><td class=&quot;val&quot;>Parse JSON Backup</td></tr>
+      <tr><td>summary_kr</td><td class=&quot;val&quot;>Parse JSON Backup</td></tr>
+      <tr><td>tags</td><td class=&quot;val&quot;>Parse JSON Backup</td></tr>
+      <tr><td>source_url</td><td class=&quot;val&quot;>RSS link</td></tr>
+      <tr><td>pub_date</td><td class=&quot;val&quot;>RSS isoDate</td></tr>
+      <tr><td>thumbnail</td><td class=&quot;val&quot;>Upload Thumbnail 디스크립터 (배열 래핑)</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>핵심 옵션</div>
+    <table class=&quot;opt&quot;>
+      <tr><th>옵션</th><th>값</th><th>설명</th></tr>
+      <tr><td>url</td><td class=&quot;val&quot;>…/api/v2/tables/{tableId}/records</td><td>대상 테이블의 레코드 생성 엔드포인트(고정 URL)</td></tr>
+      <tr><td>thumbnail 형식</td><td class=&quot;val&quot;>Array.isArray ? … : […]</td><td>NocoDB 첨부는 배열을 요구 → 단일이면 배열로 감쌈</td></tr>
+    </table>
+    <div class=&quot;lbl&quot;>커스터마이징</div>
+    <ul class=&quot;custom&quot;>
+      <li>테이블 컬럼을 늘리면 jsonBody에 같은 패턴(<code>{{ JSON.stringify(... ?? null) }}</code>)으로 줄 추가.</li>
+      <li>업데이트(중복 갱신)가 필요하면 생성 대신 NocoDB upsert 엔드포인트로 변경.</li>
+      <li>끝에 Slack/Discord 알림 노드를 붙이면 &quot;신규 적재 알림&quot;으로 확장 가능.</li>
+    </ul>
+  </div>
+
+</section>
+
+<section class=&quot;sec&quot;>
+  <div class=&quot;sec-h&quot;>n8n 동작 개념 노트</div>
+  <div class=&quot;concept&quot;>
+    <h3>아이템(item) 흐름</h3>
+    <p>모든 노드는 &quot;아이템 배열&quot;을 받아 &quot;아이템 배열&quot;을 내보낸다. RSS가 N개를 만들면 이후 노드들이 N개를 각각 처리하고, 필터·중복제거를 지나며 개수가 줄어든다. <span class=&quot;pin&quot;>노드 사이에서 개수가 달라질 수 있다는 점이 06의 페어링 메모와 직결된다.</span></p>
+  </div>
+  <div class=&quot;concept&quot;>
+    <h3>실행 순서와 비동기 처리</h3>
+    <p>n8n은 연결선을 따라 <b>노드를 한 번에 하나씩, 순서대로</b> 실행한다. 한 노드는 자기에게 들어온 아이템을 모두 처리해 출력을 다 만든 뒤에야 다음 노드로 넘어간다(분기 갈래도 동시에가 아니라 차례로). 그러면서도 &quot;비동기&quot;인 이유는, HTTP 요청처럼 결과를 기다려야 하는 작업에서 n8n이 Node.js의 async/await로 <b>응답을 기다리는 동안 프로세스를 멈추지 않기</b> 때문이다 — 네트워크 대기 시간에도 이벤트 루프가 다른 일을 처리할 수 있다. 08의 코드가 <code>await prepareBinaryData</code>를 쓰는 것이 그 예다. 한 노드 안에서 여러 아이템을 처리할 때의 동시성·간격은 배칭 옵션이 조절한다.</p>
+  </div>
+  <div class=&quot;concept&quot;>
+    <h3>배칭과 재시도</h3>
+    <p>배칭은 한 노드에 들어온 여러 아이템의 외부 호출을 <b>묶음으로 쪼개 간격을 두고</b> 내보내, API 한도를 넘지 않게 하는 장치다(05·07은 5초 간격). 재시도는 호출이 <b>실패(비정상 상태코드·타임아웃·네트워크/ API 오류)</b>했을 때 정해진 횟수만큼 간격을 두고 다시 거는 장치다(05·07은 3초 간격 3회). 둘 다 &quot;느려도 안정적으로&quot;를 위한 설정이라, 글이 많거나 장애가 잦을수록 간격·횟수를 키운다.</p>
+  </div>
+  <div class=&quot;concept&quot;>
+    <h3>pairedItem — &quot;이게 어느 글에서 왔나&quot;</h3>
+    <p>변환·분기를 거치며 순서가 흐트러져도 원본 아이템과의 연결을 유지하는 장치다. 08은 이를 명시적으로 세팅하고, 06은 index 수동 페어링에 의존한다. 안정적인 매칭이 필요하면 index보다 pairedItem이나 고유키(guid) 매칭이 정석이다.</p>
+  </div>
+  <div class=&quot;concept&quot;>
+    <h3>첨부(attachment) 처리 방식</h3>
+    <p>NocoDB 첨부는 &quot;파일은 스토리지에, 레코드에는 참조만&quot; 구조다. 그래서 11이 바이트를 올려 디스크립터를 받고(① 업로드), 12가 그 디스크립터를 레코드 첨부 필드에 배열로 넣는다(② 연결). 레코드에 이미지가 박히는 게 아니라 이미지로 가는 링크가 박힌다.</p>
+  </div>
+  <div class=&quot;concept&quot;>
+    <h3>IF 노드의 두 출력</h3>
+    <p>IF(v2)는 true / false 두 갈래를 내보낸다. 이 파이프라인은 true만 연결해 &quot;필터&quot;로 쓰지만, false 갈래를 이으면 양쪽을 모두 처리하는 진짜 &quot;분기(Router)&quot;가 된다.</p>
+  </div>
+</section>
+
+<footer>
+  <span>iHeartDogs RSS 파이프라인 · 노드 레퍼런스</span>
+  <span>n8n · 11 nodes · RSS → LLM → NocoDB</span>
+</footer>
+
+</div>
+
+<script>
+function go(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+var pills=[].slice.call(document.querySelectorAll('.pill'));
+var map={};pills.forEach(function(p){var m=p.getAttribute('onclick').match(/'(n\d+)'/);if(m)map[m[1]]=p;});
+if('IntersectionObserver' in window){
+  var ob=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        pills.forEach(function(p){p.classList.remove('on');});
+        var p=map[e.target.id];if(p)p.classList.add('on');
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('.node').forEach(function(n){ob.observe(n);});
+}
+document.querySelectorAll('table.opt').forEach(function(t){
+  var w=document.createElement('div');w.className='tscroll';
+  t.parentNode.insertBefore(w,t);w.appendChild(t);
+});
+</script>
+" scrolling="no"></iframe></div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <h3>NocoDB 연결</h3>
+    <p class="desc">기본 연결은 같은 폴더의 <b>config.js</b>(window.PUPDATE_CONFIG)에서 읽습니다. 여기 입력하면 이번 세션에 한해 그 값을 덮어써요. 토큰은 HTML에 저장되지 않습니다.</p>
+    <div class="field"><label>Base URL</label><input id="inBase" placeholder="https://nocodb.example.com"></div>
+    <div class="field"><label>Table ID</label><input id="inTable" placeholder="mxxxxxxxxxxxx"></div>
+    <div class="field"><label>API Token · xc-token</label><input id="inToken" type="password" placeholder="비밀 토큰"></div>
+    <div class="row"><button class="tbtn" id="btnCancel">취소</button><button class="tbtn primary" id="btnSave">저장 · 불러오기</button></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ================= FEED · NocoDB fetch ================= */
+  var CONFIG = { baseUrl:'https://nocodb.doji.synology.me', tableId:'mlv0w2jirotd672', token:'', pageSize:48 };
+  var RECORDS = [];
+  function q(s){ return document.querySelector(s); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function loadConfig(){
+    var c = window.PUPDATE_CONFIG || {};
+    if(c.baseUrl) CONFIG.baseUrl=c.baseUrl;
+    if(c.tableId) CONFIG.tableId=c.tableId;
+    if(typeof c.token==='string' && c.token) CONFIG.token=c.token;
+    if(c.pageSize) CONFIG.pageSize=c.pageSize;
+    if(!CONFIG.token){ try{ var s=JSON.parse(localStorage.getItem('pupdate')||'{}'); if(s.baseUrl)CONFIG.baseUrl=s.baseUrl; if(s.tableId)CONFIG.tableId=s.tableId; if(typeof s.token==='string')CONFIG.token=s.token; }catch(e){} }
+  }
+  function saveCfg(b,t,k){ CONFIG.baseUrl=b; CONFIG.tableId=t; CONFIG.token=k; try{ localStorage.setItem('pupdate',JSON.stringify({baseUrl:b,tableId:t,token:k})); }catch(e){} }
+
+  function setStatus(mode){
+    var led=q('#led'), txt=q('#stxt');
+    led.className='led'+(mode==='on'?' on':mode==='err'?' err':'');
+    txt.textContent = mode==='on'?('CONNECTED · '+RECORDS.length):mode==='err'?'ERROR':mode==='load'?'READING…':'STANDBY';
+  }
+  function fmtDate(d){ if(!d) return ''; var t=new Date(d); if(isNaN(t)) return esc(d); return t.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'}); }
+  function imgUrl(att){
+    if(!att) return null;
+    var base=CONFIG.baseUrl.replace(/\/+$/,'');
+    function join(p){ return /^https?:\/\//.test(p)?p:base+'/'+String(p).replace(/^\/+/,''); }
+    var tn=att.thumbnails||{};
+    var cand=(tn.card_cover&&tn.card_cover.signedPath)||(tn.small&&tn.small.signedPath)||att.signedUrl||att.url||att.signedPath||att.path;
+    return cand?join(cand):null;
+  }
+
+  function stateHTML(kind,msg){
+    if(kind==='loading') return '<div class="state"><h3>읽는 중…</h3><p>NocoDB에서 기사를 불러오고 있어요.</p></div>';
+    if(kind==='need')    return '<div class="state"><h3>NocoDB에 연결해 기사 불러오기</h3><p>같은 폴더의 <code>config.js</code>에 토큰을 넣으면 자동으로 불러옵니다. 또는 아래에서 직접 입력할 수 있어요.</p><button class="tbtn primary" onclick="document.getElementById(\'modal\').classList.add(\'open\')">연결 설정 열기</button></div>';
+    if(kind==='error')   return '<div class="state"><h3>불러오지 못했어요</h3><p>요청이 실패했어요 (<code>'+esc(msg)+'</code>). 토큰·주소가 맞는지, NocoDB가 이 페이지의 CORS를 허용하는지 확인해요.</p><button class="tbtn" onclick="document.getElementById(\'modal\').classList.add(\'open\')">설정 다시 열기</button></div>';
+    if(kind==='empty')   return '<div class="state"><h3>표시할 기사가 없어요</h3><p>테이블이 비어 있어요.</p></div>';
+    return '';
+  }
+  function renderState(kind,msg){ q('#articleArea').innerHTML=stateHTML(kind,msg); }
+
+  function renderArticles(){
+    if(!RECORDS.length){ renderState('empty'); return; }
+    var cards = RECORDS.map(function(r){
+      var att = Array.isArray(r.thumbnail)?r.thumbnail[0]:r.thumbnail;
+      var src = imgUrl(att);
+      var tags = (r.tags||'').split(',').map(function(t){return t.trim();}).filter(Boolean).slice(0,5);
+      return '<article class="card"><div class="thumb">'+
+        (src?'<img loading="lazy" src="'+esc(src)+'" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'"><div class="noimg" style="display:none">NO IMAGE</div>':'<div class="noimg">NO IMAGE</div>')+
+        '</div><div class="cbody"><div class="cdate">'+esc(fmtDate(r.pub_date))+'</div>'+
+        '<h3 class="ctitle">'+esc(r.title_kr||'(제목 없음)')+'</h3>'+
+        '<p class="csum">'+esc(r.summary_kr||'')+'</p>'+
+        '<div class="tags">'+tags.map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
+        (r.source_url?'<a class="csrc" href="'+esc(r.source_url)+'" target="_blank" rel="noopener">원문 보기 ↗</a>':'')+
+        '</div></article>';
+    }).join('');
+    q('#articleArea').innerHTML='<div class="grid">'+cards+'</div>';
+  }
+
+  function fetchRecords(){
+    var token=(CONFIG.token||'').replace(/[^\x21-\x7E]/g,'');
+    if(!token){ renderState('need'); setStatus('off'); return; }
+    setStatus('load'); renderState('loading');
+    var base=CONFIG.baseUrl.replace(/\/+$/,'');
+    var url=base+'/api/v2/tables/'+CONFIG.tableId+'/records?limit='+CONFIG.pageSize;
+    fetch(url,{headers:{'xc-token':token,'Accept':'application/json'}})
+      .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+      .then(function(data){
+        RECORDS = Array.isArray(data.list)?data.list:(Array.isArray(data)?data:[]);
+        RECORDS.sort(function(a,b){ return new Date(b.pub_date||0)-new Date(a.pub_date||0); });
+        setStatus('on'); renderArticles();
+      })
+      .catch(function(err){ setStatus('err'); renderState('error', err.message); });
+  }
+
+  function openModal(){ q('#inBase').value=CONFIG.baseUrl; q('#inTable').value=CONFIG.tableId; q('#inToken').value=CONFIG.token; q('#modal').classList.add('open'); }
+  q('#btnSettings').addEventListener('click', openModal);
+  q('#btnRefresh').addEventListener('click', fetchRecords);
+  q('#btnCancel').addEventListener('click', function(){ q('#modal').classList.remove('open'); });
+  q('#btnSave').addEventListener('click', function(){ saveCfg(q('#inBase').value.trim(), q('#inTable').value.trim(), q('#inToken').value.trim()); q('#modal').classList.remove('open'); fetchRecords(); });
+  q('#modal').addEventListener('click', function(e){ if(e.target===q('#modal')) q('#modal').classList.remove('open'); });
+
+  loadConfig();
+  fetchRecords();
+
+  /* ================= tabs + iframe auto-fit ================= */
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+  var views = { readme:document.getElementById('v-readme'), flow:document.getElementById('v-flow'), feed:document.getElementById('v-feed'), docs:document.getElementById('v-docs') };
+  var frames = { flow:document.getElementById('if-flow'), docs:document.getElementById('if-docs') };
+
+  function fit(fr){ if(!fr) return; try{ var d=fr.contentDocument; if(d&&d.body){ var h=Math.max(d.documentElement.scrollHeight,d.body.scrollHeight); var cur=parseFloat(fr.style.height)||0; if(Math.abs(h-cur)>2) fr.style.height=h+'px'; } }catch(e){} }
+  function refit(name){ var fr=frames[name]; if(!fr) return; try{ fr.contentWindow.dispatchEvent(new Event('resize')); }catch(e){} fit(fr); setTimeout(function(){fit(fr);},80); setTimeout(function(){fit(fr);},300); }
+
+  function activate(name){
+    tabs.forEach(function(t){ t.classList.toggle('on', t.getAttribute('data-v')===name); });
+    Object.keys(views).forEach(function(k){ views[k].classList.toggle('on', k===name); });
+    if(frames[name]) refit(name);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ activate(t.getAttribute('data-v')); }); });
+
+  ['flow','docs'].forEach(function(name){ frames[name].addEventListener('load', function(){ refit(name); }); });
+  setTimeout(function(){ refit('flow'); }, 200);
+  var rt;
+  window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ var on=document.querySelector('.tab.on').getAttribute('data-v'); if(frames[on]) refit(on); },160); });
+})();
+</script>

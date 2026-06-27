@@ -1,0 +1,528 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 23
+            }
+          ]
+        }
+      },
+      "id": "187433d5-7dcf-4b06-bab7-f53890def4d6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://iheartdogs.com/feed",
+        "options": {}
+      },
+      "id": "af821068-03f7-47c0-85af-0e9567ced47a",
+      "name": "iHeartDogs RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.guid || $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        816
+      ],
+      "id": "8d943ed0-c812-4ab9-b2db-fa2aa76680d6",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemini-2.5-flash-lite\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"너는 반려견 전문가야. 영문 기사를 분석해서 title_kr, summary_kr, tags 세 키만 가진 JSON 객체로만 답변해. summary_kr은 반드시 3문장(3줄) 이내로 작성해. 코드펜스나 다른 텍스트는 절대 붙이지 마.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify(\"Title: \" + $json.title + \"\\n\\nContent: \" + $json.contentSnippet) }}\n    }\n  ]\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchInterval": 5000
+            }
+          }
+        }
+      },
+      "id": "883a9a53-efdb-4d15-a40d-1d1b1eb71bba",
+      "name": "OpenClaw AI Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        1088
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "ZfbgUSqjFdg8Rcs2",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\nconst parsed = $('Parse JSON Backup').all();\n\nfor (let i = 0; i < items.length; i++) {\n  const resp = items[i].json;\n  const img = resp.choices?.[0]?.message?.images?.[0];\n  const dataUrl = img?.image_url?.url || img?.url;\n  if (!dataUrl) { continue; }\n\n  const buffer = Buffer.from(dataUrl.split(',').pop(), 'base64');\n\n  out.push({\n    json: parsed[i].json,\n    binary: {\n      thumbnail: await this.helpers.prepareBinaryData(buffer, `thumb_${i}.png`, 'image/png'),\n    },\n    pairedItem: { item: i },\n  });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        1088
+      ],
+      "id": "9fded308-041b-47a6-8bea-e28e027531a4",
+      "name": "Extract Image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nocodb.doji.synology.me/api/v2/storage/upload",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "thumbnail"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -128,
+        1360
+      ],
+      "id": "26eb2852-7870-430b-bcdf-59be76630a41",
+      "name": "Upload Thumbnail",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "gYg9fE3GIN2lS9zu",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "30개 리턴",
+        "height": 208,
+        "width": 630
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        496
+      ],
+      "id": "85f40cab-b0f5-4144-bc7a-38b4fab382a4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "이전 워크 히스토리를 통해서 중복된 feed 제거",
+        "height": 224,
+        "width": 512,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        752
+      ],
+      "id": "a9cf17c7-dd2f-4122-a8eb-2540f5345dc8",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "topic-keyword-match",
+              "leftValue": "={{ /dog|puppy|breed|training|health|vet|nutrition|food|adoption|rescue|behavior|safety|recall/i.test(($json.title || '') + ' ' + ($json.contentSnippet || '')) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7f52254f-aef1-417d-bed9-54e09b451990",
+      "name": "Filter Topic",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://nocodb.doji.synology.me/api/v2/tables/mlv0w2jirotd672/records",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"title_kr\": {{ JSON.stringify($('Parse JSON Backup').item.json.title_kr ?? null) }},\n  \"summary_kr\": {{ JSON.stringify($('Parse JSON Backup').item.json.summary_kr ?? null) }},\n  \"tags\": {{ JSON.stringify($('Parse JSON Backup').item.json.tags ?? null) }},\n  \"source_url\": {{ JSON.stringify($('Parse JSON Backup').item.json.source_url ?? null) }},\n  \"pub_date\": {{ JSON.stringify($('Parse JSON Backup').item.json.pub_date ?? null) }},\n  \"thumbnail\": [\n    {{ JSON.stringify($('Upload Thumbnail').item.json) }}\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        96,
+        1360
+      ],
+      "id": "06be8f03-c1f3-45c8-8dd1-27e91d79028c",
+      "name": "Create Record Nocodb1",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "gYg9fE3GIN2lS9zu",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://nocodb.doji.synology.me/api/v2/tables/mlv0w2jirotd672/records",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "where",
+              "value": "=(source_url,eq,{{ $json.link }})"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        816
+      ],
+      "id": "fa6710c4-78f9-4139-9709-a6e5eb785407",
+      "name": "Check DB Duplicate",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "gYg9fE3GIN2lS9zu",
+          "name": "NocoDB Token account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "db-is-new",
+              "leftValue": "={{ ($json.list || []).length === 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        816
+      ],
+      "id": "e4de5f45-5712-40b1-8e12-babcf02c14f3",
+      "name": "Is New?",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (let index = 0; index < items.length; index++) {\n  try {\n    const item = items[index];\n    const resp = item.json.body || item.json;\n\n    // 1. LLM 응답 추출\n    if (resp.error) {\n      console.error(`Item ${index} API 에러 발생:`, resp.error.message || resp.error);\n      continue;\n    }\n    const message = resp.choices?.[0]?.message?.content;\n    if (!message) continue;\n\n    // 2. 마크다운/잡텍스트 제거 후 중괄호 본체만 추출\n    let cleaned = message.replace(/\\`{3}(?:json)?/gi, '').trim();\n    const jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) cleaned = jsonMatch[0];\n\n    const parsed = JSON.parse(cleaned);\n\n    // 3. 원본 메타 추적\n    let rss = {};\n    try {\n      const m = $('Remove Duplicates').itemMatching(index);\n      rss = (m && m.json) ? m.json : ($('Remove Duplicates').all()[index]?.json ?? {});\n    } catch (e) {\n      rss = $('Remove Duplicates').all()[index]?.json ?? {};\n    }\n\n    // 4. 추적 키 확보\n    const source_url = rss.link || rss.guid || '';\n    if (!source_url) {\n      console.warn(`Item ${index}: source_url 없음 → 스킵`);\n      continue;\n    }\n\n    // [강화된 로직] LLM이 \"미정\", \"정보 없음\" 등으로 분석을 포기한 경우 완벽 차단\n    const badTitle = !parsed.title_kr || parsed.title_kr.includes('미정') || parsed.title_kr.includes('정보 없음');\n    const badSummary = parsed.summary_kr && (\n      parsed.summary_kr.includes('제공되지 않았습니다') || \n      parsed.summary_kr.includes('정보가 없어') || \n      parsed.summary_kr.includes('요약할 수 없') ||\n      parsed.summary_kr.includes('정보 없음') ||\n      parsed.summary_kr.length < 20 // 20자 미만이면 의미 없는 요약으로 간주\n    );\n\n    if (badTitle || badSummary) {\n      console.warn(`Item ${index}: LLM 분석 실패(정보 없음 패턴 감지) → 스킵`);\n      continue;\n    }\n\n    // 5. 결과 객체\n    results.push({\n      json: {\n        title_kr: parsed.title_kr || '',\n        summary_kr: parsed.summary_kr || '',\n        tags: Array.isArray(parsed.tags) ? parsed.tags.join(', ') : (parsed.tags || ''),\n        source_url,\n        pub_date: rss.isoDate || rss.pubDate || '',\n      },\n      pairedItem: { item: index },\n    });\n\n  } catch (error) {\n    console.error(`Item ${index} 파싱 실패:`, error.message);\n  }\n}\n\nreturn results;"
+      },
+      "id": "07327b33-e98c-4fd9-a8cc-159766b8f983",
+      "name": "Parse JSON Backup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        1088
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": 6
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        144,
+        544
+      ],
+      "id": "0b0bb9b5-e082-4564-88a3-06c9fcd8d235",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "content": "생성",
+        "height": 208,
+        "width": 624,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        1056
+      ],
+      "id": "fd5d3db8-ee35-4886-8591-0cbd3a4b8c43",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "DB 기록",
+        "height": 208,
+        "width": 496,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        1312
+      ],
+      "id": "c2f2bdb1-c327-4458-99ca-43166e5f2a7d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemini-2.5-flash-image\",\n  \"modalities\": [\"image\", \"text\"],\n  \"image_config\": { \"aspect_ratio\": \"16:9\" },\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify(\"Warm, friendly editorial blog thumbnail illustrating: \" + $json.title_kr + \". Theme tags: \" + $json.tags + \". Soft natural lighting, cute dog illustration style, cozy and heartwarming, no text, no logos, clean 16:9 composition.\") }}\n    }\n  ]\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchInterval": 5000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        176,
+        1088
+      ],
+      "id": "153413fb-b53f-45d9-8b05-66d897553132",
+      "name": "Get Thumbnail",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "ZfbgUSqjFdg8Rcs2",
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "iHeartDogs RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "iHeartDogs RSS": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Check DB Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenClaw AI Processing": {
+      "main": [
+        [
+          {
+            "node": "Parse JSON Backup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image": {
+      "main": [
+        [
+          {
+            "node": "Upload Thumbnail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Thumbnail": {
+      "main": [
+        [
+          {
+            "node": "Create Record Nocodb1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Topic": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DB Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Is New?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is New?": {
+      "main": [
+        [
+          {
+            "node": "OpenClaw AI Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JSON Backup": {
+      "main": [
+        [
+          {
+            "node": "Get Thumbnail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Filter Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Thumbnail": {
+      "main": [
+        [
+          {
+            "node": "Extract Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "3cc6c4256e2bbdec1b3708c49dc3889c7266357f3e239651c157c2de760e6c65"
+  }
+}
