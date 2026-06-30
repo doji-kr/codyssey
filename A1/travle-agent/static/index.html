@@ -3,133 +3,686 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>국내 여행 추천 플래너</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Travel Agent v1 · by doji</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    #report-output h1 { font-size:1.6rem; font-weight:700; margin:1.2rem 0 .6rem; }
-    #report-output h2 { font-size:1.25rem; font-weight:700; margin:1rem 0 .4rem; border-bottom:1px solid #e5e7eb; padding-bottom:.25rem; }
-    #report-output h3 { font-size:1.05rem; font-weight:600; margin:.8rem 0 .3rem; }
-    #report-output ul,#report-output ol { padding-left:1.4rem; margin:.4rem 0; }
-    #report-output li { margin:.2rem 0; }
-    #report-output a { color:#3b82f6; text-decoration:underline; }
-    #report-output strong { font-weight:700; }
-    #report-output blockquote { border-left:3px solid #d1d5db; padding-left:.8rem; color:#6b7280; margin:.6rem 0; }
-    #report-output hr { border-color:#e5e7eb; margin:1rem 0; }
-    #report-output table { border-collapse:collapse; width:100%; margin:.6rem 0; }
-    #report-output th,#report-output td { border:1px solid #e5e7eb; padding:.4rem .6rem; font-size:.9rem; }
-    #report-output th { background:#f9fafb; font-weight:600; }
-    #log-output { font-family: 'Courier New', monospace; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #e8e6e1;
+      --panel:    #ffffff;
+      --text:     #111111;
+      --muted:    #888888;
+      --border:   #d4d2cd;
+      --accent:   #d45a1a;
+      --sidebar-w: 42%;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── LEFT SIDEBAR ────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: 320px;
+      height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2.5rem;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-top {}
+
+    .version-tag {
+      font-size: .65rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+    }
+
+    #sidebar h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 1rem;
+    }
+
+    #sidebar h1 span { color: var(--accent); }
+
+    #sidebar .desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 280px;
+    }
+
+    .pipeline-steps {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: .75rem;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .65rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: var(--text);
+    }
+
+    .sidebar-bottom {
+      font-size: .7rem;
+      color: var(--muted);
+      letter-spacing: .05em;
+    }
+
+    /* ── RIGHT PANEL ─────────────────────────────────── */
+    #main {
+      flex: 1;
+      height: 100vh;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Tab nav */
+    #tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 1.1rem 0;
+      margin-right: 2rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+
+    .tab-btn.active {
+      color: var(--text);
+      border-bottom-color: var(--text);
+    }
+
+    /* Tab content */
+    .tab-pane { display: none; flex: 1; overflow-y: auto; padding: 2.5rem; }
+    .tab-pane.active { display: flex; flex-direction: column; }
+
+    /* ── PLANNER tab ─────────────────────────────────── */
+    .planner-header {
+      margin-bottom: 2rem;
+    }
+
+    .planner-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+
+    .planner-header p {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .date-row {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    #date-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .65rem 1rem;
+      font-size: .85rem;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    #date-input:focus { border-color: var(--text); }
+
+    #run-btn {
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: .65rem 1.5rem;
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+
+    #run-btn:disabled { opacity: .4; cursor: not-allowed; }
+    #run-btn:hover:not(:disabled) { opacity: .75; }
+
+    #date-error {
+      font-size: .75rem;
+      color: #dc2626;
+      margin-top: -.9rem;
+      margin-bottom: .8rem;
+      display: none;
+    }
+
+    /* Log */
+    #log-section {
+      background: #0f0f0f;
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    #log-header {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .75rem;
+    }
+
+    #log-spinner {
+      width: 10px; height: 10px;
+      border: 2px solid #3b82f6;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #log-label {
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    #log-output {
+      font-family: 'Courier New', monospace;
+      font-size: .72rem;
+      color: #4ade80;
+      line-height: 1.6;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    /* Report */
+    #report-section { display: none; }
+
+    .report-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+      padding-bottom: .8rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .report-meta-left {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .report-label {
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    #cache-badge {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: .2rem .55rem;
+      border-radius: 20px;
+      display: none;
+    }
+
+    #report-output h1 { font-size:1.4rem; font-weight:800; margin:1.2rem 0 .5rem; }
+    #report-output h2 { font-size:1.05rem; font-weight:700; margin:1.2rem 0 .4rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); }
+    #report-output h3 { font-size:.9rem; font-weight:700; margin:.9rem 0 .3rem; }
+    #report-output p  { font-size:.82rem; color:#333; line-height:1.7; margin:.3rem 0; }
+    #report-output ul,#report-output ol { padding-left:1.2rem; margin:.4rem 0; }
+    #report-output li { font-size:.82rem; line-height:1.7; color:#333; }
+    #report-output a  { color:var(--accent); }
+    #report-output strong { font-weight:700; color:var(--text); }
+    #report-output blockquote { border-left:3px solid var(--border); padding-left:.8rem; color:var(--muted); margin:.5rem 0; font-size:.8rem; }
+    #report-output table { width:100%; border-collapse:collapse; margin:.6rem 0; font-size:.78rem; }
+    #report-output th,#report-output td { border:1px solid var(--border); padding:.4rem .6rem; }
+    #report-output th { background:var(--bg); font-weight:700; }
+
+    /* Error */
+    #error-section {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      font-size: .82rem;
+      color: #be123c;
+      display: none;
+    }
+
+    /* ── DOCS tab ─────────────────────────────────────── */
+    .docs-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .docs-section-title {
+      font-size: .65rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .docs-section h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+
+    .docs-section p, .docs-section li {
+      font-size: .82rem;
+      color: #444;
+      line-height: 1.7;
+    }
+
+    .docs-section ul { padding-left: 1.2rem; margin-top: .3rem; }
+    .docs-section li { margin-bottom: .2rem; }
+
+    .req-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+      margin-top: .8rem;
+    }
+
+    .req-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+    }
+
+    .req-card .card-num {
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+
+    .req-card h4 {
+      font-size: .85rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+
+    .req-card p {
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .pipeline-diagram {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      font-family: 'Courier New', monospace;
+      font-size: .72rem;
+      color: #444;
+      line-height: 1.7;
+      margin-top: .8rem;
+    }
+
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: .8rem;
+      font-size: .78rem;
+    }
+
+    .api-table th {
+      background: var(--bg);
+      text-align: left;
+      padding: .5rem .8rem;
+      font-size: .65rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .api-table td {
+      padding: .6rem .8rem;
+      border-bottom: 1px solid var(--border);
+      color: #444;
+      vertical-align: top;
+    }
+
+    .api-table td:first-child { font-weight: 600; color: var(--text); }
+
+    code {
+      background: var(--bg);
+      padding: .1rem .35rem;
+      border-radius: 3px;
+      font-size: .75rem;
+      font-family: 'Courier New', monospace;
+    }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body>
 
-  <div class="max-w-3xl mx-auto px-4 py-10">
+  <!-- LEFT SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <div class="version-tag">Travel Agent · v1</div>
 
-    <!-- 헤더 -->
-    <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-gray-800">국내 여행 추천 플래너</h1>
-      <p class="text-gray-500 mt-2 text-sm">날짜를 입력하면 날씨 기반으로 최적 여행지와 1일 리포트를 생성합니다.</p>
-    </div>
+      <h1>Plan your<br>perfect<br><span>trip.</span></h1>
 
-    <!-- 입력 폼 -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-      <div class="flex gap-3">
-        <input
-          id="date-input"
-          type="date"
-          class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        <button
-          id="run-btn"
-          onclick="runPipeline()"
-          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          리포트 생성
-        </button>
+      <p class="desc">
+        날씨 평년값으로 최적 여행지를 결정론적으로 선정하고,
+        축제·맛집·숙박 실데이터를 수집해 LLM이 하루 일정을 만들어 드립니다.
+      </p>
+
+      <div class="pipeline-steps">
+        <div class="step"><span class="step-num">1</span> Open-Meteo 기후 평년값 → 쾌적도 점수</div>
+        <div class="step"><span class="step-num">2</span> TourAPI searchFestival2 → 축제·행사</div>
+        <div class="step"><span class="step-num">3</span> Kakao Local → 맛집 10곳</div>
+        <div class="step"><span class="step-num">4</span> TourAPI searchStay2 → 숙박</div>
+        <div class="step"><span class="step-num">5</span> OpenRouter Gemini-2.5-flash → 리포트</div>
       </div>
-      <p id="date-error" class="text-red-500 text-sm mt-2 hidden"></p>
     </div>
 
-    <!-- 진행 로그 -->
-    <div id="log-section" class="hidden bg-gray-900 rounded-2xl shadow-sm p-5 mb-6">
-      <div class="flex items-center gap-2 mb-3">
-        <span id="log-spinner" class="inline-block w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span>
-        <span class="text-gray-300 text-sm font-medium">파이프라인 실행 중...</span>
+    <div class="sidebar-bottom">by doji · 2026</div>
+  </aside>
+
+  <!-- RIGHT MAIN -->
+  <main id="main">
+
+    <!-- Tab nav -->
+    <nav id="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('planner', this)">Planner</button>
+      <button class="tab-btn" onclick="switchTab('docs', this)">Docs</button>
+    </nav>
+
+    <!-- PLANNER tab -->
+    <div id="tab-planner" class="tab-pane active">
+      <div class="planner-header">
+        <h2>여행 날짜를 선택하세요</h2>
+        <p>내일부터 1년 이내 날짜만 입력 가능합니다. 동일 날짜는 캐시에서 즉시 반환됩니다.</p>
       </div>
-      <div id="log-output" class="text-green-400 text-xs leading-relaxed space-y-0.5 max-h-64 overflow-y-auto"></div>
+
+      <div class="date-row">
+        <input id="date-input" type="date" />
+        <button id="run-btn" onclick="runPipeline()">리포트 생성 →</button>
+      </div>
+      <div id="date-error"></div>
+
+      <div id="error-section"><strong>오류:</strong> <span id="error-msg"></span></div>
+
+      <div id="log-section">
+        <div id="log-header">
+          <div id="log-spinner"></div>
+          <span id="log-label">파이프라인 실행 중</span>
+        </div>
+        <div id="log-output"></div>
+      </div>
+
+      <div id="report-section">
+        <div class="report-meta">
+          <div class="report-meta-left">
+            <span class="report-label">Travel Report</span>
+            <span id="cache-badge">캐시</span>
+          </div>
+        </div>
+        <div id="report-output"></div>
+      </div>
     </div>
 
-    <!-- 리포트 출력 -->
-    <div id="report-section" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div class="flex items-center justify-between mb-5">
-        <h2 class="text-lg font-bold text-gray-700">여행 리포트</h2>
-        <div class="flex gap-2">
-          <span id="cache-badge" class="hidden bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">캐시 반환</span>
-          <a id="md-link" href="#" target="_blank" class="text-xs text-blue-500 hover:underline hidden">MD 파일 보기</a>
-          <a id="json-link" href="#" target="_blank" class="text-xs text-gray-400 hover:underline hidden">JSON 보기</a>
+    <!-- DOCS tab -->
+    <div id="tab-docs" class="tab-pane">
+
+      <div class="docs-section">
+        <div class="docs-section-title">과제 요구사항</div>
+        <div class="req-cards">
+          <div class="req-card">
+            <div class="card-num">요건 01</div>
+            <h4>REST API 연동</h4>
+            <p>다중 외부 API를 유기적으로 결합해 엔드투엔드 자동화 파이프라인을 구축한다.</p>
+          </div>
+          <div class="req-card">
+            <div class="card-num">요건 02</div>
+            <h4>LLM 구조화 출력</h4>
+            <p>LLM에게 스키마를 강제하고, JSON 파싱 실패 시 1회 재시도하는 견고한 연동을 구현한다.</p>
+          </div>
+          <div class="req-card">
+            <div class="card-num">요건 03</div>
+            <h4>예외 처리 (Fault Tolerance)</h4>
+            <p>401/403/429/타임아웃 등 다차원 실패 시나리오에서 파이프라인이 살아남고 <code>errors[]</code>에 기록한다.</p>
+          </div>
+          <div class="req-card">
+            <div class="card-num">요건 04</div>
+            <h4>보안 — Zero Trust</h4>
+            <p>모든 API 키는 <code>.env</code>에만 보관. 코드·저장소 어디에도 하드코딩 금지.</p>
+          </div>
         </div>
       </div>
-      <div id="report-output" class="text-gray-700 text-sm leading-relaxed"></div>
-    </div>
 
-    <!-- 에러 출력 -->
-    <div id="error-section" class="hidden bg-red-50 border border-red-200 rounded-2xl p-5 text-red-700 text-sm">
-      <strong>오류:</strong> <span id="error-msg"></span>
-    </div>
+      <div class="docs-section">
+        <div class="docs-section-title">파이프라인 구현</div>
+        <div class="pipeline-diagram">
+[--date YYYY-MM-DD]
+       │
+       ▼
+① weather.py  — Open-Meteo Climate API
+  11개 도시 × (월일 ±3일 평균기온·습도)
+  → comfort_score = temp_score×0.6 + hum_score×0.4
+  → 최고 점수 도시 선정 (결정론적, LLM 미사용)
+       │
+       ├─ ② tour.py — TourAPI KorService2
+       │    searchFestival2  (당월 1일~, 기간 내 필터)
+       │    searchStay2      (지역코드 기반, 10건)
+       │
+       ├─ ③ places.py — Kakao Local
+       │    "{도시명} 맛집" + category_group_code=FD6
+       │
+       └─ ④ llm.py — OpenRouter → Gemini-2.5-flash
+            수집 데이터 → 오전/오후/저녁 마크다운 리포트
+            파싱 실패 시 1회 재시도
+       │
+       ▼
+results/{DATE}_raw_data.json
+results/{DATE}_travel_plan.md
+       │
+       ▼  (재실행 시)
+[캐시 HIT] → API·LLM 생략, 기존 파일 즉시 반환</div>
+      </div>
 
-  </div>
+      <div class="docs-section">
+        <div class="docs-section-title">사용 API</div>
+        <table class="api-table">
+          <thead>
+            <tr><th>서비스</th><th>용도</th><th>비고</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Open-Meteo Climate</td>
+              <td>11개 도시 기후 평년값 (기온·습도)</td>
+              <td>API 키 불필요. 기준연도 2000, ±3일 윈도우 평균.</td>
+            </tr>
+            <tr>
+              <td>TourAPI KorService2</td>
+              <td>축제(<code>searchFestival2</code>), 숙박(<code>searchStay2</code>)</td>
+              <td>공공데이터포털 인증키. 범용 함수로 엔드포인트 분리.</td>
+            </tr>
+            <tr>
+              <td>Kakao Local</td>
+              <td>맛집 키워드 검색</td>
+              <td>REST API 키. <code>FD6</code> 카테고리 필터.</td>
+            </tr>
+            <tr>
+              <td>OpenRouter → Gemini-2.5-flash</td>
+              <td>마크다운 리포트 생성</td>
+              <td>LLM은 마지막 단계에서만 사용. 실패 시 폴백 반환.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="docs-section">
+        <div class="docs-section-title">산출물 스키마</div>
+        <h3 style="font-size:.82rem; font-weight:700; margin-bottom:.4rem;">raw_data.json</h3>
+        <div class="pipeline-diagram">{
+  "date": "2026-07-15",
+  "city": {
+    "name": "속초", "area_code": 32,
+    "weather": { "avg_temp_c": 24.2, "humidity_pct": 80, "source": "open-meteo-climate" },
+    "score": 0.568
+  },
+  "festivals":   [ { "title": "", "eventplace": "", "start": "", "end": "" } ],
+  "restaurants": [ { "name": "", "address": "", "category": "", "url": "", "x": "", "y": "" } ],
+  "stays":       [ { "name": "", "address": "", "tel": "", "url": "" } ],
+  "errors":      [ { "step": "", "type": "", "message": "" } ]
+}</div>
+      </div>
+
+      <div class="docs-section">
+        <div class="docs-section-title">파일 구조</div>
+        <div class="pipeline-diagram">travel-planner/
+├── travel_planner.py   — CLI 진입점 + 파이프라인 오케스트레이터
+├── weather.py          — Open-Meteo + 쾌적도 점수 계산
+├── tour.py             — TourAPI 범용 클라이언트 (축제·숙박)
+├── places.py           — Kakao Local 맛집 검색
+├── llm.py              — OpenRouter LLM 리포트 생성
+├── report.py           — JSON·MD 파일 저장
+├── server.py           — FastAPI + SSE 웹 서버
+├── static/index.html   — 이 페이지
+├── .env                — API 키 (Git 제외)
+├── .env.example        — 키 템플릿
+└── results/            — 생성된 리포트 저장소</div>
+      </div>
+
+    </div><!-- /tab-docs -->
+
+  </main>
 
   <script>
-    // 날짜 범위 설정 (내일 ~ 1년 이내)
+    // ── 탭 전환 ────────────────────────────────────────
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // ── 날짜 범위 설정 ──────────────────────────────────
     const dateInput = document.getElementById('date-input');
-    const today = new Date();
-    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-    const maxDate  = new Date(today); maxDate.setDate(today.getDate() + 365);
-    dateInput.min = tomorrow.toISOString().slice(0, 10);
-    dateInput.max = maxDate.toISOString().slice(0, 10);
+    const today     = new Date();
+    const tomorrow  = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    const maxDate   = new Date(today); maxDate.setDate(today.getDate() + 365);
+    dateInput.min   = tomorrow.toISOString().slice(0, 10);
+    dateInput.max   = maxDate.toISOString().slice(0, 10);
     dateInput.value = tomorrow.toISOString().slice(0, 10);
 
-    function setRunning(isRunning) {
-      document.getElementById('run-btn').disabled = isRunning;
-    }
-
-    function showError(msg) {
-      const sec = document.getElementById('error-section');
-      document.getElementById('error-msg').textContent = msg;
-      sec.classList.remove('hidden');
-    }
+    // ── 헬퍼 ───────────────────────────────────────────
+    function setRunning(v) { document.getElementById('run-btn').disabled = v; }
 
     function hideAll() {
-      ['log-section', 'report-section', 'error-section'].forEach(id =>
-        document.getElementById(id).classList.add('hidden')
-      );
+      ['log-section','report-section','error-section'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
       document.getElementById('log-output').innerHTML = '';
       document.getElementById('report-output').innerHTML = '';
-      document.getElementById('cache-badge').classList.add('hidden');
-      document.getElementById('date-error').classList.add('hidden');
+      document.getElementById('cache-badge').style.display = 'none';
+      document.getElementById('date-error').style.display = 'none';
     }
 
     function appendLog(msg) {
-      const el = document.getElementById('log-output');
+      const el   = document.getElementById('log-output');
       const line = document.createElement('div');
       line.textContent = msg;
       el.appendChild(line);
       el.scrollTop = el.scrollHeight;
     }
 
+    function showError(msg) {
+      const sec = document.getElementById('error-section');
+      document.getElementById('error-msg').textContent = msg;
+      sec.style.display = 'block';
+    }
+
+    // ── 파이프라인 실행 ────────────────────────────────
     function runPipeline() {
       const date = dateInput.value;
       if (!date) {
-        document.getElementById('date-error').textContent = '날짜를 선택하세요.';
-        document.getElementById('date-error').classList.remove('hidden');
+        const err = document.getElementById('date-error');
+        err.textContent = '날짜를 선택하세요.';
+        err.style.display = 'block';
         return;
       }
 
       hideAll();
       setRunning(true);
-      document.getElementById('log-section').classList.remove('hidden');
-      document.getElementById('log-spinner').style.display = 'inline-block';
+
+      const logSec = document.getElementById('log-section');
+      logSec.style.display = 'block';
+      document.getElementById('log-spinner').style.display = 'block';
+      document.getElementById('log-label').textContent = '파이프라인 실행 중';
 
       const evtSource = new EventSource(`/api/plan?date=${date}`);
 
@@ -139,19 +692,19 @@
         if (msg.type === 'log') {
           appendLog(msg.message);
           if (msg.message.includes('캐시 HIT')) {
-            document.getElementById('cache-badge').classList.remove('hidden');
+            document.getElementById('cache-badge').style.display = 'inline-block';
           }
         }
 
         if (msg.type === 'done') {
           evtSource.close();
           document.getElementById('log-spinner').style.display = 'none';
-          appendLog('✔ 완료');
+          document.getElementById('log-label').textContent = '완료';
+          appendLog('─────────────────────────────────────');
+          appendLog('✔  리포트 생성 완료');
 
-          // 리포트 렌더링
-          document.getElementById('report-section').classList.remove('hidden');
+          document.getElementById('report-section').style.display = 'block';
           document.getElementById('report-output').innerHTML = marked.parse(msg.markdown);
-
           setRunning(false);
         }
 
@@ -166,7 +719,7 @@
       evtSource.onerror = () => {
         evtSource.close();
         document.getElementById('log-spinner').style.display = 'none';
-        showError('서버 연결이 끊겼습니다. 서버가 실행 중인지 확인하세요.');
+        showError('서버 연결이 끊겼습니다.');
         setRunning(false);
       };
     }
