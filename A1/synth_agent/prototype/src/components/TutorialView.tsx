@@ -30,15 +30,25 @@ function StepContent({ text }: { text: string }) {
 
 export default function TutorialView({ guide, onStepChange, onBack }: Props) {
   const [activeStep, setActiveStep] = useState(0);
+  const [stepKey, setStepKey] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     setActiveStep(0);
+    setStepKey((k) => k + 1);
+    setIsExiting(false);
     onStepChange([]);
   }, [guide.id]);
 
   const goToStep = (i: number) => {
-    setActiveStep(i);
-    onStepChange(guide.steps[i].relatedControls);
+    if (i === activeStep) return;
+    setIsExiting(true);
+    setTimeout(() => {
+      setActiveStep(i);
+      setStepKey((k) => k + 1);
+      setIsExiting(false);
+      onStepChange(guide.steps[i].relatedControls);
+    }, 140);
   };
 
   const step = guide.steps[activeStep];
@@ -88,7 +98,10 @@ export default function TutorialView({ guide, onStepChange, onBack }: Props) {
           </div>
 
           {step && (
-            <>
+            <div
+              key={stepKey}
+              className={isExiting ? 'anim-step-exit' : 'anim-step-enter'}
+            >
               {/* Title */}
               <h2 className="text-[28px] font-bold text-gray-950 mb-5 leading-tight tracking-tight">
                 {step.title}
@@ -140,7 +153,7 @@ export default function TutorialView({ guide, onStepChange, onBack }: Props) {
               >
                 이 스텝에서 막혔나요? AI에게 물어보기 ↗
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>

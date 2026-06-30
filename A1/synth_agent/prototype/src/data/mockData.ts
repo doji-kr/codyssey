@@ -23,6 +23,8 @@ export interface Guide {
   slug: string;
   title: string;
   description: string;
+  isFree?: boolean;
+  estimatedMinutes?: number;
   steps: GuideStep[];
 }
 
@@ -100,7 +102,9 @@ export const devices: Device[] = [
         id: 'g1',
         slug: 'getting-started',
         title: '첫 시작',
-        description: 'K.O. II의 전원을 켜고 첫 소리를 만들어 봅니다.',
+        description: '전원 켜기부터 첫 샘플 녹음까지 — 침묵에서 소리까지 5분이면 됩니다.',
+        isFree: true,
+        estimatedMinutes: 5,
         steps: [
           {
             id: 's1',
@@ -142,7 +146,8 @@ export const devices: Device[] = [
         id: 'g2',
         slug: 'first-beat',
         title: '첫 번째 비트 만들기',
-        description: '스텝 시퀀서로 루프 패턴을 처음부터 만들어 봅니다.',
+        description: '스텝 시퀀서로 킥·스네어를 배치하고 루프 패턴을 완성합니다.',
+        estimatedMinutes: 6,
         steps: [
           {
             id: 's4',
@@ -173,6 +178,97 @@ export const devices: Device[] = [
             youShouldSeeHear:
               '패턴이 계속 반복됩니다. 커서가 현재 재생 중인 스텝을 따라 움직입니다.',
             relatedControls: ['play', 'volume'],
+          },
+        ],
+      },
+      {
+        id: 'g3',
+        slug: 'lofi-beat',
+        title: '로파이 비트 만들기',
+        description: '− / + 로 드럼 샘플을 고르고, 85 BPM 로파이 그루브를 라이브 녹음으로 완성합니다.',
+        estimatedMinutes: 8,
+        steps: [
+          {
+            id: 's10',
+            stepNumber: 1,
+            title: '핵심 버튼 한눈에 보기',
+            content:
+              'K.O. II의 버튼은 세 구역으로 나뉩니다. 상단의 {SOUND} · {MAIN} · {TEMPO}는 모드 전환 버튼, 오른쪽의 {SAMPLE} · {FX} · {ERASE}는 기능 버튼입니다. {SHIFT}를 다른 버튼과 함께 누르면 버튼 아래에 인쇄된 보조 기능이 실행됩니다.',
+            youShouldSeeHear:
+              '버튼을 하나씩 눌러보면 화면 표시가 바뀝니다. 소리가 나지 않아도 됩니다. 지금은 위치를 눈으로 익히는 것이 목표입니다.',
+            tips:
+              'SHIFT는 키보드의 Shift 키와 같습니다. 단독으로는 아무 일도 일어나지 않지만, 다른 버튼과 조합하면 새로운 기능이 열립니다. SOUND+SHIFT = EDIT, TEMPO+SHIFT = LOOP 식으로 기억해 두세요.',
+            relatedControls: ['sound', 'main', 'tempo-b', 'shift', 'sample', 'fx', 'erase'],
+          },
+          {
+            id: 's11',
+            stepNumber: 2,
+            title: '그룹 A 선택하기',
+            content:
+              '왼쪽에 있는 주황색 {그룹 A} 패드를 탭하세요. 그룹 A가 활성화되면 패드 1~9가 그룹 A의 샘플 슬롯을 가리킵니다. {패드 1}을 탭해 현재 어떤 소리가 들어있는지 확인해 보세요.',
+            youShouldSeeHear:
+              '그룹 A 패드에 불이 켜지고, 패드 1을 누르면 해당 슬롯의 소리가 납니다. 기본값으로 킥 드럼이 들어있는 경우가 많습니다.',
+            relatedControls: ['pad-a', 'p1'],
+          },
+          {
+            id: 's12',
+            stepNumber: 3,
+            title: '− / + 로 킥 샘플 바꾸기',
+            content:
+              '{SOUND} 버튼을 누른 채 {패드 1}을 탭하면 사운드 브라우저가 열립니다. {−} 또는 {+} 버튼을 눌러 샘플을 스크롤하세요. 마음에 드는 킥 드럼 소리가 나오면 {ENTER}를 눌러 확정합니다.',
+            youShouldSeeHear:
+              '화면에 샘플 이름이 표시되고, − / + 를 누를 때마다 소리가 미리 재생됩니다. "KICK", "BD", "808" 등의 단어가 붙은 이름을 찾아보세요.',
+            tips:
+              '로파이 비트에는 너무 깔끔한 킥보다 약간 눌린 느낌의 묵직한 소리가 잘 어울립니다. 샘플 이름에 "VINYL", "CRUSHED", "TAPE"가 붙어 있다면 꼭 들어보세요.',
+            relatedControls: ['sound', 'p1', 'minus-btn', 'plus-btn', 'enter'],
+          },
+          {
+            id: 's13',
+            stepNumber: 4,
+            title: '스네어와 하이햇 고르기',
+            content:
+              '같은 방법으로 {패드 2}에는 스네어(SD · SNARE), {패드 3}에는 하이햇(HH · HAT) 샘플을 넣으세요. {SOUND}를 누른 채 해당 패드를 탭하고, {−} / {+}로 스크롤한 뒤 {ENTER}로 확정합니다.',
+            youShouldSeeHear:
+              '패드 2에서 스네어, 패드 3에서 하이햇 소리가 납니다. 세 패드를 번갈아 치면서 드럼 킷이 자연스럽게 어울리는지 귀로 확인하세요.',
+            tips:
+              '서로 다른 시대의 샘플을 섞으면 재미있는 텍스처가 생깁니다. 60년대 빈티지 킥 + 90년대 샘플러 스네어 조합이 로파이 특유의 온기를 만들어냅니다.',
+            relatedControls: ['sound', 'p2', 'p3', 'minus-btn', 'plus-btn', 'enter'],
+          },
+          {
+            id: 's14',
+            stepNumber: 5,
+            title: '템포 85 BPM으로 맞추기',
+            content:
+              '{TEMPO} 버튼을 누른 채 주황색 {X 노브}를 돌려 화면에 85가 표시될 때까지 조절하세요. 85 BPM은 자연스럽게 고개가 끄덕여지는 로파이 히합의 황금 템포입니다.',
+            youShouldSeeHear:
+              'TEMPO를 누른 동안 화면 숫자가 실시간으로 바뀝니다. 85 근처에서 손을 떼면 설정이 저장됩니다.',
+            tips:
+              '80~95 BPM이 로파이 히합의 전통적인 영역입니다. 더 나른하고 졸린 느낌을 원한다면 75 BPM도 시도해 보세요.',
+            relatedControls: ['tempo-b', 'knob-x'],
+          },
+          {
+            id: 's15',
+            stepNumber: 6,
+            title: '라이브 녹음으로 비트 찍기',
+            content:
+              '{RECORD}를 누르면 바로 녹음이 시작됩니다. {패드 1}(킥)을 1·3박, {패드 2}(스네어)를 2·4박, {패드 3}(하이햇)을 8분음표 리듬으로 두드려 보세요. 한 바퀴(16스텝)가 끝나면 자동으로 루프됩니다.',
+            youShouldSeeHear:
+              '녹음 중에는 RECORD 버튼이 빨간색으로 깜빡입니다. 패드를 탭할 때마다 해당 스텝에 불이 들어오며 기록됩니다.',
+            tips:
+              '처음엔 한 악기씩 녹음해도 됩니다. 킥만 먼저 찍고, RECORD를 다시 눌러 스네어를 덧입히고, 마지막에 하이햇을 추가하는 방식으로 레이어를 쌓아가세요.',
+            relatedControls: ['record', 'p1', 'p2', 'p3'],
+          },
+          {
+            id: 's16',
+            stepNumber: 7,
+            title: '재생하고 다듬기',
+            content:
+              '{PLAY}를 눌러 방금 녹음한 패턴을 들어보세요. 잘못 찍힌 스텝이 있다면 {ERASE}를 누른 채 해당 패드를 탭해 지울 수 있습니다. {VOLUME}을 조절해 원하는 레벨로 맞추세요.',
+            youShouldSeeHear:
+              '패턴이 반복 재생되며 현재 재생 중인 스텝이 패드에 표시됩니다. 귀에 즐겁게 들리면 성공입니다.',
+            tips:
+              '완벽하지 않아도 됩니다. 약간의 타이밍 흔들림이 오히려 로파이 특유의 인간적인 그루브를 만들어냅니다. 너무 정확한 비트는 오히려 차갑게 들릴 수 있습니다.',
+            relatedControls: ['play', 'erase', 'volume'],
           },
         ],
       },

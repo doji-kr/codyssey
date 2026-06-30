@@ -72,7 +72,11 @@ export default function App() {
             setHighlighted((prev) => (prev.includes(id) ? [] : [id]))
           }
         />
-        <div className={`w-1/2 ${view === 'tutorial' ? 'overflow-hidden h-full' : 'overflow-y-auto'}`}>{right}</div>
+        <div className={`w-1/2 ${view === 'tutorial' ? 'overflow-hidden h-full' : 'overflow-y-auto'}`}>
+          <div key={`${view}-${device.id}-${guide?.id ?? ''}`} className="anim-view-enter h-full">
+            {right}
+          </div>
+        </div>
       </main>
     </div>
   );
