@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+.env
+*Identifier
+
+# 프로그램이 생성하는 데이터 파일 (보너스 과제용)
+*.json
+exports/
+
+# OS / 에디터
+.DS_Store
+.vscode/
