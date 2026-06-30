@@ -2,6 +2,7 @@
 
 import requests
 from datetime import date, timedelta
+from typing import Callable
 
 CANDIDATE_CITIES = [
     {"name": "서울",  "area_code": 1,  "lat": 37.5665, "lon": 126.9780},
@@ -84,7 +85,7 @@ def fetch_climate(city: dict, month: int, day: int, errors: list) -> dict | None
         return None
 
 
-def select_best_city(date_str: str, errors: list) -> dict:
+def select_best_city(date_str: str, errors: list, log: Callable = print) -> dict:
     """날짜 기준으로 가장 쾌적한 도시를 결정론적으로 선정.
 
     Returns:
@@ -96,7 +97,7 @@ def select_best_city(date_str: str, errors: list) -> dict:
         }
     """
     year, month, day = map(int, date_str.split("-"))
-    print(f"  [날씨] {len(CANDIDATE_CITIES)}개 도시 기후 평년값 조회 중 ({month}월 {day}일 기준)...")
+    log(f"  [날씨] {len(CANDIDATE_CITIES)}개 도시 기후 평년값 조회 중 ({month}월 {day}일 기준)...")
 
     best = None
     for city in CANDIDATE_CITIES:
@@ -105,7 +106,7 @@ def select_best_city(date_str: str, errors: list) -> dict:
             continue
 
         score = _comfort_score(climate["avg_temp_c"], climate["humidity_pct"])
-        print(f"         {city['name']:4s} | {climate['avg_temp_c']:5.1f}°C | 습도 {climate['humidity_pct']:3.0f}% | 점수 {score:.4f}")
+        log(f"         {city['name']:4s} | {climate['avg_temp_c']:5.1f}°C | 습도 {climate['humidity_pct']:3.0f}% | 점수 {score:.4f}")
 
         if best is None or score > best["score"]:
             best = {

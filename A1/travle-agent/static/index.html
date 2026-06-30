@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>국내 여행 추천 플래너</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    #report-output h1 { font-size:1.6rem; font-weight:700; margin:1.2rem 0 .6rem; }
+    #report-output h2 { font-size:1.25rem; font-weight:700; margin:1rem 0 .4rem; border-bottom:1px solid #e5e7eb; padding-bottom:.25rem; }
+    #report-output h3 { font-size:1.05rem; font-weight:600; margin:.8rem 0 .3rem; }
+    #report-output ul,#report-output ol { padding-left:1.4rem; margin:.4rem 0; }
+    #report-output li { margin:.2rem 0; }
+    #report-output a { color:#3b82f6; text-decoration:underline; }
+    #report-output strong { font-weight:700; }
+    #report-output blockquote { border-left:3px solid #d1d5db; padding-left:.8rem; color:#6b7280; margin:.6rem 0; }
+    #report-output hr { border-color:#e5e7eb; margin:1rem 0; }
+    #report-output table { border-collapse:collapse; width:100%; margin:.6rem 0; }
+    #report-output th,#report-output td { border:1px solid #e5e7eb; padding:.4rem .6rem; font-size:.9rem; }
+    #report-output th { background:#f9fafb; font-weight:600; }
+    #log-output { font-family: 'Courier New', monospace; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <div class="max-w-3xl mx-auto px-4 py-10">
+
+    <!-- 헤더 -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-800">국내 여행 추천 플래너</h1>
+      <p class="text-gray-500 mt-2 text-sm">날짜를 입력하면 날씨 기반으로 최적 여행지와 1일 리포트를 생성합니다.</p>
+    </div>
+
+    <!-- 입력 폼 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div class="flex gap-3">
+        <input
+          id="date-input"
+          type="date"
+          class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          id="run-btn"
+          onclick="runPipeline()"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          리포트 생성
+        </button>
+      </div>
+      <p id="date-error" class="text-red-500 text-sm mt-2 hidden"></p>
+    </div>
+
+    <!-- 진행 로그 -->
+    <div id="log-section" class="hidden bg-gray-900 rounded-2xl shadow-sm p-5 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span id="log-spinner" class="inline-block w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span>
+        <span class="text-gray-300 text-sm font-medium">파이프라인 실행 중...</span>
+      </div>
+      <div id="log-output" class="text-green-400 text-xs leading-relaxed space-y-0.5 max-h-64 overflow-y-auto"></div>
+    </div>
+
+    <!-- 리포트 출력 -->
+    <div id="report-section" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-bold text-gray-700">여행 리포트</h2>
+        <div class="flex gap-2">
+          <span id="cache-badge" class="hidden bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">캐시 반환</span>
+          <a id="md-link" href="#" target="_blank" class="text-xs text-blue-500 hover:underline hidden">MD 파일 보기</a>
+          <a id="json-link" href="#" target="_blank" class="text-xs text-gray-400 hover:underline hidden">JSON 보기</a>
+        </div>
+      </div>
+      <div id="report-output" class="text-gray-700 text-sm leading-relaxed"></div>
+    </div>
+
+    <!-- 에러 출력 -->
+    <div id="error-section" class="hidden bg-red-50 border border-red-200 rounded-2xl p-5 text-red-700 text-sm">
+      <strong>오류:</strong> <span id="error-msg"></span>
+    </div>
+
+  </div>
+
+  <script>
+    // 날짜 범위 설정 (내일 ~ 1년 이내)
+    const dateInput = document.getElementById('date-input');
+    const today = new Date();
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    const maxDate  = new Date(today); maxDate.setDate(today.getDate() + 365);
+    dateInput.min = tomorrow.toISOString().slice(0, 10);
+    dateInput.max = maxDate.toISOString().slice(0, 10);
+    dateInput.value = tomorrow.toISOString().slice(0, 10);
+
+    function setRunning(isRunning) {
+      document.getElementById('run-btn').disabled = isRunning;
+    }
+
+    function showError(msg) {
+      const sec = document.getElementById('error-section');
+      document.getElementById('error-msg').textContent = msg;
+      sec.classList.remove('hidden');
+    }
+
+    function hideAll() {
+      ['log-section', 'report-section', 'error-section'].forEach(id =>
+        document.getElementById(id).classList.add('hidden')
+      );
+      document.getElementById('log-output').innerHTML = '';
+      document.getElementById('report-output').innerHTML = '';
+      document.getElementById('cache-badge').classList.add('hidden');
+      document.getElementById('date-error').classList.add('hidden');
+    }
+
+    function appendLog(msg) {
+      const el = document.getElementById('log-output');
+      const line = document.createElement('div');
+      line.textContent = msg;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function runPipeline() {
+      const date = dateInput.value;
+      if (!date) {
+        document.getElementById('date-error').textContent = '날짜를 선택하세요.';
+        document.getElementById('date-error').classList.remove('hidden');
+        return;
+      }
+
+      hideAll();
+      setRunning(true);
+      document.getElementById('log-section').classList.remove('hidden');
+      document.getElementById('log-spinner').style.display = 'inline-block';
+
+      const evtSource = new EventSource(`/api/plan?date=${date}`);
+
+      evtSource.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+
+        if (msg.type === 'log') {
+          appendLog(msg.message);
+          if (msg.message.includes('캐시 HIT')) {
+            document.getElementById('cache-badge').classList.remove('hidden');
+          }
+        }
+
+        if (msg.type === 'done') {
+          evtSource.close();
+          document.getElementById('log-spinner').style.display = 'none';
+          appendLog('✔ 완료');
+
+          // 리포트 렌더링
+          document.getElementById('report-section').classList.remove('hidden');
+          document.getElementById('report-output').innerHTML = marked.parse(msg.markdown);
+
+          setRunning(false);
+        }
+
+        if (msg.type === 'error') {
+          evtSource.close();
+          document.getElementById('log-spinner').style.display = 'none';
+          showError(msg.message);
+          setRunning(false);
+        }
+      };
+
+      evtSource.onerror = () => {
+        evtSource.close();
+        document.getElementById('log-spinner').style.display = 'none';
+        showError('서버 연결이 끊겼습니다. 서버가 실행 중인지 확인하세요.');
+        setRunning(false);
+      };
+    }
+  </script>
+</body>
+</html>

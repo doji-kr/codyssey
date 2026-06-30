@@ -3,8 +3,9 @@
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, date as date_type
 from pathlib import Path
+from typing import Callable
 
 from dotenv import load_dotenv
 
@@ -36,6 +37,22 @@ def validate_date(date_string: str) -> str:
     return target.isoformat()
 
 
+def check_date(date_string: str) -> str:
+    """서버에서 사용하는 날짜 검증 — ValueError를 raise."""
+    try:
+        target = datetime.strptime(date_string, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError(f"올바르지 않은 날짜 형식: '{date_string}'. YYYY-MM-DD 형식을 사용하세요.")
+
+    today = datetime.now().date()
+    if target <= today:
+        raise ValueError(f"'{date_string}'은 오늘 이전 날짜입니다. 내일 이후 날짜를 입력하세요.")
+    if (target - today).days > 365:
+        raise ValueError(f"'{date_string}'은 오늘로부터 1년 초과입니다. 1년 이내 날짜를 입력하세요.")
+
+    return target.isoformat()
+
+
 def _load_cache(date_str: str) -> tuple[dict, str] | None:
     """raw_data.json과 travel_plan.md가 모두 있으면 (raw_data, markdown) 반환, 없으면 None."""
     json_path = Path("results") / f"{date_str}_raw_data.json"
@@ -47,35 +64,38 @@ def _load_cache(date_str: str) -> tuple[dict, str] | None:
     return None
 
 
-def run(date_str: str) -> None:
+def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, str]:
+    """파이프라인 실행. (json_path, md_path, markdown) 반환."""
     errors: list = []
 
     # ── 캐시 확인 ────────────────────────────────────────────────────────
     cached = _load_cache(date_str)
     if cached:
         raw_data, markdown = cached
-        print(f"\n[캐시 HIT] 기존 결과 반환 — API·LLM 호출 없음")
-        print(f"- 데이터 원본 JSON : results/{date_str}_raw_data.json")
-        print(f"- 최종 마크다운    : results/{date_str}_travel_plan.md\n")
-        return
+        log(f"[캐시 HIT] 기존 결과 반환 — API·LLM 호출 없음")
+        log(f"- 데이터 원본 JSON : results/{date_str}_raw_data.json")
+        log(f"- 최종 마크다운    : results/{date_str}_travel_plan.md")
+        json_path = str(Path("results") / f"{date_str}_raw_data.json")
+        md_path   = str(Path("results") / f"{date_str}_travel_plan.md")
+        return json_path, md_path, markdown
 
     # ── 1단계: 날씨 기반 도시 선정 ─────────────────────────────────────
-    print(f"\n[1/4] 날씨 데이터 조회 및 최적 도시 선정 중...")
-    city_result = weather.select_best_city(date_str, errors)
+    log("[1/4] 날씨 데이터 조회 및 최적 도시 선정 중...")
+    city_result = weather.select_best_city(date_str, errors, log=log)
     city_name   = city_result["recommended_city"]
     area_code   = city_result["area_code"]
-    print(f"      ✔ 추천 도시: {city_name} (쾌적도 점수: {city_result['score']})")
+    log(f"      ✔ 추천 도시: {city_name} (쾌적도 점수: {city_result['score']})")
 
     # ── 2단계: TourAPI 축제·숙박 ────────────────────────────────────────
-    print(f"\n[2/4] TourAPI 축제·숙박 정보 수집 중...")
+    log("[2/4] TourAPI 축제·숙박 정보 수집 중...")
     festivals = tour.fetch_festivals(area_code, date_str, errors)
     stays     = tour.fetch_stays(area_code, errors)
-    print(f"      ✔ 축제 {len(festivals)}건 / 숙박 {len(stays)}건")
+    log(f"      ✔ 축제 {len(festivals)}건 / 숙박 {len(stays)}건")
 
     # ── 3단계: Kakao Local 맛집 ─────────────────────────────────────────
-    print(f"\n[3/4] Kakao Local 맛집 검색 중...")
+    log("[3/4] Kakao Local 맛집 검색 중...")
     restaurants = places.fetch_restaurants(city_name, errors)
-    print(f"      ✔ 맛집 {len(restaurants)}건")
+    log(f"      ✔ 맛집 {len(restaurants)}건")
 
     # ── raw_data 조립 ────────────────────────────────────────────────────
     raw_data = {
@@ -93,24 +113,23 @@ def run(date_str: str) -> None:
     }
 
     # ── 4단계: LLM 리포트 생성 ──────────────────────────────────────────
-    print(f"\n[4/4] LLM 마크다운 리포트 생성 중...")
+    log("[4/4] LLM 마크다운 리포트 생성 중...")
     markdown = llm.generate_report(raw_data, errors)
-    raw_data["errors"] = errors  # LLM 단계 에러 포함
-    print(f"      ✔ 리포트 생성 완료")
+    raw_data["errors"] = errors
+    log("      ✔ 리포트 생성 완료")
 
     # ── 파일 저장 ────────────────────────────────────────────────────────
     json_path, md_path = report.save(date_str, raw_data, markdown)
-    _print_summary(json_path, md_path, errors)
 
-
-def _print_summary(json_path: str, md_path: str, errors: list) -> None:
-    print("\n" + "=" * 72)
-    print("[완료] 파이프라인 처리가 정상 완료되었습니다.")
-    print(f"- 데이터 원본 JSON : {json_path}")
-    print(f"- 최종 마크다운    : {md_path}")
+    log("=" * 60)
+    log("[완료] 파이프라인 처리가 정상 완료되었습니다.")
+    log(f"- 데이터 원본 JSON : {json_path}")
+    log(f"- 최종 마크다운    : {md_path}")
     if errors:
-        print(f"- 누적 오류 {len(errors)}건 — {json_path} 내 errors[] 확인")
-    print("=" * 72 + "\n")
+        log(f"- 누적 오류 {len(errors)}건")
+    log("=" * 60)
+
+    return json_path, md_path, markdown
 
 
 def main() -> None:
