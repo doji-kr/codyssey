@@ -49,69 +49,51 @@ export const devices: Device[] = [
       '64MB 샘플러 + 비트 컴포저. 샘플링, 초핑, 시퀀싱, 완성된 트랙 제작까지 단계별로 익혀 보세요.',
     bgColor: '#1c1c1e',
     controls: [
-      {
-        id: 'pads',
-        name: '샘플 패드',
-        description: 'A/B/C/D 그룹 × 3열로 구성된 16개 패드. 샘플 트리거 및 스텝 시퀀싱에 사용',
-        positionX: 13,
-        positionY: 59,
-        width: 46,
-        height: 35,
-      },
-      {
-        id: 'knob-a',
-        name: 'X 노브 (BPM)',
-        description: 'TEMPO 버튼을 누른 채 이 주황 노브를 돌려 BPM을 설정합니다',
-        positionX: 63,
-        positionY: 42,
-        width: 18,
-        height: 16,
-      },
-      {
-        id: 'knob-b',
-        name: 'VOLUME',
-        description: '마스터 출력 볼륨 — 왼쪽 상단의 흰색 노브',
-        positionX: 4,
-        positionY: 44,
-        width: 15,
-        height: 13,
-      },
-      {
-        id: 'sample-btn',
-        name: 'SAMPLE',
-        description: '누른 채 패드를 탭하면 해당 슬롯에 샘플을 녹음합니다',
-        positionX: 60,
-        positionY: 59,
-        width: 19,
-        height: 7,
-      },
-      {
-        id: 'play-btn',
-        name: 'PLAY',
-        description: '시퀀스 재생 시작 / 정지',
-        positionX: 80,
-        positionY: 88,
-        width: 18,
-        height: 7,
-      },
-      {
-        id: 'record-btn',
-        name: 'RECORD',
-        description: '라이브 녹음 시작 — 탭하면 연주가 시퀀서에 기록됩니다',
-        positionX: 61,
-        positionY: 88,
-        width: 18,
-        height: 7,
-      },
-      {
-        id: 'tempo-btn',
-        name: 'TEMPO 버튼',
-        description: '이 버튼을 누른 채 X 노브를 돌리면 BPM이 변경됩니다',
-        positionX: 49,
-        positionY: 44,
-        width: 13,
-        height: 5,
-      },
+      // ── 왼쪽 스트립 ──────────────────────────────────
+      { id: 'volume',   name: 'VOLUME',         description: '마스터 출력 볼륨 노브',                                         positionX:  3, positionY: 44, width: 13, height: 13 },
+      { id: 'keys',     name: 'KEYS',            description: 'KEYS 모드: 패드를 음계 키보드로 전환',                           positionX:  4, positionY: 57, width: 10, height:  9 },
+      { id: 'fader-b',  name: 'FADER',           description: 'FADER 모드: 왼쪽 슬라이더로 벨로시티 제어',                     positionX:  4, positionY: 68, width: 10, height:  8 },
+      { id: 'fader-sl', name: 'FADER 슬라이더',  description: '벨로시티 또는 레벨 슬라이더',                                   positionX:  7, positionY: 73, width:  5, height: 15 },
+      { id: 'shift',    name: 'SHIFT',           description: '보조 기능 전환 — 다른 버튼과 함께 누르면 보조 기능 활성화',       positionX:  4, positionY: 89, width: 10, height:  8 },
+      // ── 상단 버튼 행 (단일 물리 버튼 / 아래 인쇄 라벨 = SHIFT 기능) ─
+      { id: 'sound',   name: 'SOUND',   description: '사운드 브라우저 열기. SHIFT+SOUND = EDIT (Envelope·Trim 편집)',           positionX: 18, positionY: 44, width:  9, height:  7 },
+      { id: 'main',    name: 'MAIN',    description: '메인 패턴 뷰로 이동. SHIFT+MAIN = COMMIT (패턴을 Song 트랙에 확정)',       positionX: 32, positionY: 44, width:  9, height:  7 },
+      { id: 'tempo-b', name: 'TEMPO',   description: '누른 채 X 노브를 돌리면 BPM 설정. SHIFT+TEMPO = LOOP (루프 구간 설정)',   positionX: 46, positionY: 44, width:  9, height:  7 },
+      // ── BPM / 메트로놈 노브 ───────────────────────────
+      { id: 'knob-x', name: 'X 노브 (BPM)',   description: 'TEMPO를 누른 채 돌리면 BPM 설정. 단독 조작 시 파라미터 X 변경',    positionX: 70, positionY: 44, width: 14, height: 16 },
+      { id: 'knob-y', name: 'Y 노브 (SWING)', description: 'TEMPO를 누른 채 돌리면 스윙 양 조절. 단독 조작 시 파라미터 Y 변경', positionX: 86, positionY: 44, width: 11, height: 16 },
+      // ── 그룹 패드 A/B/C/D ────────────────────────────
+      { id: 'pad-a', name: '그룹 A', description: '그룹 A 패드 (샘플 슬롯 1-12): 탭하면 그룹 전환', positionX: 15, positionY: 57, width: 12, height: 10 },
+      { id: 'pad-b', name: '그룹 B', description: '그룹 B 패드 (샘플 슬롯 13-24)',                  positionX: 15, positionY: 67, width: 12, height:  9 },
+      { id: 'pad-c', name: '그룹 C', description: '그룹 C 패드 (샘플 슬롯 25-36)',                  positionX: 15, positionY: 76, width: 12, height:  9 },
+      { id: 'pad-d', name: '그룹 D', description: '그룹 D 패드 (샘플 슬롯 37-48)',                  positionX: 15, positionY: 85, width: 12, height: 10 },
+      // ── 숫자 패드 1열: 7, 4, 1, * ────────────────────
+      { id: 'p7',    name: '패드 7', description: '숫자 패드 7 — 현재 그룹의 7번 슬롯 트리거', positionX: 31, positionY: 57, width: 10, height: 10 },
+      { id: 'p4',    name: '패드 4', description: '숫자 패드 4',                               positionX: 31, positionY: 67, width: 10, height:  9 },
+      { id: 'p1',    name: '패드 1', description: '숫자 패드 1',                               positionX: 31, positionY: 76, width: 10, height:  9 },
+      { id: 'pstar', name: '패드 *', description: '숫자 패드 *',                               positionX: 31, positionY: 85, width: 10, height:  9 },
+      // ── 숫자 패드 2열: 8, 5, 2, 0 ────────────────────
+      { id: 'p8', name: '패드 8', description: '숫자 패드 8', positionX: 45, positionY: 57, width: 10, height: 10 },
+      { id: 'p5', name: '패드 5', description: '숫자 패드 5', positionX: 45, positionY: 67, width: 10, height:  9 },
+      { id: 'p2', name: '패드 2', description: '숫자 패드 2', positionX: 45, positionY: 76, width: 10, height:  9 },
+      { id: 'p0', name: '패드 0', description: '숫자 패드 0', positionX: 45, positionY: 85, width: 10, height:  9 },
+      // ── 숫자 패드 3열: 9, 6, 3 (+ 삭제 — ENTER와 중복) ───
+      { id: 'p9', name: '패드 9', description: '숫자 패드 9', positionX: 59, positionY: 57, width:  9, height: 10 },
+      { id: 'p6', name: '패드 6', description: '숫자 패드 6', positionX: 59, positionY: 67, width:  9, height:  9 },
+      { id: 'p3', name: '패드 3', description: '숫자 패드 3', positionX: 59, positionY: 76, width:  9, height:  9 },
+      // ── ENTER ────────────────────────────────────────
+      { id: 'enter', name: 'ENTER', description: '선택 확인 / 이름 입력 완료', positionX: 56, positionY: 86, width: 13, height: 10 },
+      // ── 오른쪽 A열: SAMPLE → FX → − → RECORD ─────────
+      { id: 'sample',    name: 'SAMPLE', description: '누른 채 패드를 탭하면 해당 슬롯에 샘플 녹음 시작. SHIFT+SAMPLE = CHOP (슬라이스 편집)', positionX: 72, positionY: 57, width: 11, height:  9 },
+      { id: 'fx',        name: 'FX',     description: 'FX 이펙트 모드 진입 (딜레이·리버브·디스토션 등). SHIFT+FX = OUTPUT (출력 믹스)',        positionX: 72, positionY: 66, width: 11, height:  8 },
+      { id: 'minus-btn', name: '−',      description: '파라미터 감소',                                                                          positionX: 72, positionY: 75, width: 11, height:  7 },
+      // ── 오른쪽 B열: TIMING → ERASE → + → PLAY ────────
+      { id: 'timing',    name: 'TIMING', description: 'Note Repeat 및 타이밍 설정 모드. SHIFT+TIMING = CORRECT (퀀타이즈 그리드 맞춤)',         positionX: 85, positionY: 57, width: 12, height:  9 },
+      { id: 'erase',     name: 'ERASE',  description: '스텝 또는 패턴 삭제. SHIFT+ERASE = SYSTEM (시스템 설정)',                                positionX: 85, positionY: 66, width: 12, height:  8 },
+      { id: 'plus-btn',  name: '+',      description: '파라미터 증가',                                                                          positionX: 85, positionY: 75, width: 12, height:  7 },
+      // ── 하단 행 ──────────────────────────────────────
+      { id: 'record', name: 'RECORD', description: '라이브 녹음 시작 — 연주가 시퀀서에 실시간으로 기록됩니다', positionX: 71, positionY: 85, width: 13, height: 11 },
+      { id: 'play',   name: 'PLAY',   description: '시퀀스 재생 시작 / 정지',                                  positionX: 84, positionY: 85, width: 14, height: 11 },
     ],
     guides: [
       {
@@ -140,7 +122,7 @@ export const devices: Device[] = [
               'TEMPO를 누르고 있는 동안 화면의 BPM 숫자가 노브 방향에 따라 오르내립니다. 숫자가 바뀌지 않는다면 TEMPO를 누른 채 노브를 돌리고 있는지 확인하세요.',
             tips:
               '90 BPM은 자연스럽게 고개가 끄덕여지는 템포입니다. 그루브감을 느끼기에도, 연주 실수를 줄이기에도 딱 좋습니다. 언제든 다시 조절할 수 있으니 지금은 편하게 정하세요.',
-            relatedControls: ['knob-a', 'tempo-btn'],
+            relatedControls: ['knob-x', 'tempo-b'],
           },
           {
             id: 's3',
@@ -152,7 +134,7 @@ export const devices: Device[] = [
               '녹음 중에는 패드가 빨간색으로 깜빡입니다. SAMPLE을 놓으면 패드가 주황색으로 켜지며 샘플이 저장됐음을 알려줍니다.',
             tips:
               '2초 이내의 짧은 소리가 가장 잘 어울립니다. 처음엔 긴 녹음보다 짧고 강렬한 한 방이 훨씬 효과적입니다.',
-            relatedControls: ['sample-btn', 'pads'],
+            relatedControls: ['sample', 'pad-a', 'p7', 'p8', 'p9'],
           },
         ],
       },
@@ -170,7 +152,7 @@ export const devices: Device[] = [
               '{PLAY}를 눌러 트랜스포트를 시작한 뒤, 곧바로 {SAMPLE}을 눌러 스텝 녹음 모드로 진입하세요. 이제 패드는 16분음표 그리드 위치를 나타냅니다.',
             youShouldSeeHear:
               '커서 불빛이 패드를 왼쪽에서 오른쪽으로 훑으며 현재 플레이헤드 위치를 보여줍니다.',
-            relatedControls: ['play-btn', 'sample-btn'],
+            relatedControls: ['play', 'sample'],
           },
           {
             id: 's5',
@@ -180,7 +162,7 @@ export const devices: Device[] = [
               '패드 1과 패드 9를 탭해 비트 1, 3에 킥을 넣으세요. 불이 켜진 패드가 활성화된 스텝입니다. 다시 탭하면 끌 수 있습니다.',
             tips:
               '처음엔 적게 넣는 게 좋습니다. 4개짜리 패턴이 16개짜리보다 훨씬 강력하게 들립니다.',
-            relatedControls: ['pads'],
+            relatedControls: ['pad-a','p7','p8','p9'],
           },
           {
             id: 's6',
@@ -190,7 +172,7 @@ export const devices: Device[] = [
               '{PLAY}를 다시 눌러 스텝 녹음 모드를 종료하고 패턴이 루프되는 걸 들어 보세요. 필요하다면 {VOLUME}을 조절하세요.',
             youShouldSeeHear:
               '패턴이 계속 반복됩니다. 커서가 현재 재생 중인 스텝을 따라 움직입니다.',
-            relatedControls: ['play-btn', 'knob-b'],
+            relatedControls: ['play', 'volume'],
           },
         ],
       },
