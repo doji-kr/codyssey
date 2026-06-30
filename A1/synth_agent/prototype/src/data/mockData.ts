@@ -134,7 +134,7 @@ export const devices: Device[] = [
               '녹음 중에는 패드가 빨간색으로 깜빡입니다. SAMPLE을 놓으면 패드가 주황색으로 켜지며 샘플이 저장됐음을 알려줍니다.',
             tips:
               '2초 이내의 짧은 소리가 가장 잘 어울립니다. 처음엔 긴 녹음보다 짧고 강렬한 한 방이 훨씬 효과적입니다.',
-            relatedControls: ['sample', 'pad-a', 'p7', 'p8', 'p9'],
+            relatedControls: ['sample', 'p1'],
           },
         ],
       },
@@ -162,7 +162,7 @@ export const devices: Device[] = [
               '패드 1과 패드 9를 탭해 비트 1, 3에 킥을 넣으세요. 불이 켜진 패드가 활성화된 스텝입니다. 다시 탭하면 끌 수 있습니다.',
             tips:
               '처음엔 적게 넣는 게 좋습니다. 4개짜리 패턴이 16개짜리보다 훨씬 강력하게 들립니다.',
-            relatedControls: ['pad-a','p7','p8','p9'],
+            relatedControls: ['p1', 'p9'],
           },
           {
             id: 's6',
