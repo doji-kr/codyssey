@@ -17,6 +17,44 @@ def fetch_restaurants(city_name: str, errors: list) -> list:
         errors.append({"step": "place_search", "type": "KEY_MISSING", "message": "KAKAO_REST_API_KEY 환경변수 누락"})
         return []
 
-    # TODO: 실제 HTTP 호출 구현
-    print(f"  [Kakao] '{city_name} 맛집' 검색 중... (stub)")
+    try:
+        resp = requests.get(
+            KAKAO_LOCAL_URL,
+            headers={"Authorization": f"KakaoAK {api_key}"},
+            params={
+                "query":        f"{city_name} 맛집",
+                "category_group_code": "FD6",   # 음식점만
+                "size":         10,
+                "sort":         "accuracy",
+            },
+            timeout=10,
+        )
+
+        if resp.status_code == 401:
+            errors.append({"step": "place_search", "type": "AUTH_ERROR", "message": "HTTP 401 - KAKAO_REST_API_KEY 권한 점검"})
+            return []
+        if resp.status_code == 403:
+            errors.append({"step": "place_search", "type": "AUTH_ERROR", "message": f"HTTP 403 - {resp.json().get('message', '')}"})
+            return []
+
+        resp.raise_for_status()
+        documents = resp.json().get("documents", [])
+
+        result = []
+        for doc in documents:
+            result.append({
+                "name":     doc.get("place_name", ""),
+                "address":  doc.get("road_address_name") or doc.get("address_name", ""),
+                "category": doc.get("category_name", ""),
+                "url":      doc.get("place_url", ""),
+                "x":        doc.get("x", ""),
+                "y":        doc.get("y", ""),
+            })
+        return result
+
+    except requests.exceptions.Timeout:
+        errors.append({"step": "place_search", "type": "TIMEOUT", "message": "Kakao Local 응답 타임아웃"})
+    except Exception as e:
+        errors.append({"step": "place_search", "type": "REQUEST_ERROR", "message": str(e)})
+
     return []

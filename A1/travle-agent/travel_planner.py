@@ -1,8 +1,10 @@
 """국내 여행 추천 CLI — 파이프라인 오케스트레이터."""
 
 import argparse
+import json
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -15,15 +17,47 @@ import report
 
 def validate_date(date_string: str) -> str:
     try:
-        return datetime.strptime(date_string, "%Y-%m-%d").date().isoformat()
+        target = datetime.strptime(date_string, "%Y-%m-%d").date()
     except ValueError:
         raise argparse.ArgumentTypeError(
             f"올바르지 않은 날짜 형식: '{date_string}'. YYYY-MM-DD 형식을 사용하세요."
         )
 
+    today = datetime.now().date()
+    if target <= today:
+        raise argparse.ArgumentTypeError(
+            f"'{date_string}'은 오늘 이전 날짜입니다. 내일 이후 날짜를 입력하세요."
+        )
+    if (target - today).days > 365:
+        raise argparse.ArgumentTypeError(
+            f"'{date_string}'은 오늘로부터 1년 초과입니다. 1년 이내 날짜를 입력하세요."
+        )
+
+    return target.isoformat()
+
+
+def _load_cache(date_str: str) -> tuple[dict, str] | None:
+    """raw_data.json과 travel_plan.md가 모두 있으면 (raw_data, markdown) 반환, 없으면 None."""
+    json_path = Path("results") / f"{date_str}_raw_data.json"
+    md_path   = Path("results") / f"{date_str}_travel_plan.md"
+    if json_path.exists() and md_path.exists():
+        raw_data = json.loads(json_path.read_text(encoding="utf-8"))
+        markdown = md_path.read_text(encoding="utf-8")
+        return raw_data, markdown
+    return None
+
 
 def run(date_str: str) -> None:
     errors: list = []
+
+    # ── 캐시 확인 ────────────────────────────────────────────────────────
+    cached = _load_cache(date_str)
+    if cached:
+        raw_data, markdown = cached
+        print(f"\n[캐시 HIT] 기존 결과 반환 — API·LLM 호출 없음")
+        print(f"- 데이터 원본 JSON : results/{date_str}_raw_data.json")
+        print(f"- 최종 마크다운    : results/{date_str}_travel_plan.md\n")
+        return
 
     # ── 1단계: 날씨 기반 도시 선정 ─────────────────────────────────────
     print(f"\n[1/4] 날씨 데이터 조회 및 최적 도시 선정 중...")
@@ -66,7 +100,10 @@ def run(date_str: str) -> None:
 
     # ── 파일 저장 ────────────────────────────────────────────────────────
     json_path, md_path = report.save(date_str, raw_data, markdown)
+    _print_summary(json_path, md_path, errors)
 
+
+def _print_summary(json_path: str, md_path: str, errors: list) -> None:
     print("\n" + "=" * 72)
     print("[완료] 파이프라인 처리가 정상 완료되었습니다.")
     print(f"- 데이터 원본 JSON : {json_path}")
