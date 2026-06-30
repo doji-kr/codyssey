@@ -390,6 +390,115 @@
       background: var(--bg); padding: .1rem .3rem; border-radius: 3px;
       font-size: .72rem; font-family: 'Courier New', monospace;
     }
+
+    /* ── HISTORY TAB ─────────────────────────── */
+    .history-inner { padding: 2.5rem; }
+
+    .history-empty {
+      text-align: center; padding: 3rem 0;
+      font-size: .82rem; color: var(--muted);
+    }
+
+    .h-item {
+      border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      margin-bottom: .7rem;
+    }
+
+    .h-item-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .9rem 1.1rem; cursor: pointer;
+      background: var(--panel); user-select: none;
+      transition: background .15s;
+    }
+
+    .h-item-header:hover { background: var(--bg); }
+
+    .h-item-left { display: flex; align-items: center; gap: .9rem; }
+
+    .h-item-date {
+      font-size: .78rem; font-weight: 700; color: var(--text);
+    }
+
+    .h-item-city {
+      font-size: .78rem; color: var(--accent); font-weight: 600;
+    }
+
+    .h-item-meta {
+      font-size: .68rem; color: var(--muted);
+    }
+
+    .h-toggle-icon {
+      font-size: .7rem; color: var(--muted);
+      transition: transform .25s; display: inline-block;
+      transform: rotate(0deg);
+    }
+
+    .h-item.open .h-toggle-icon { transform: rotate(180deg); }
+
+    .h-item-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height .35s ease;
+      border-top: 0px solid var(--border);
+    }
+
+    .h-item.open .h-item-body {
+      max-height: 4000px;
+      border-top: 1px solid var(--border);
+    }
+
+    .h-item-content { padding: 1.5rem; }
+
+    /* 히스토리 안에서 photo grid / report / cards 재사용 */
+    .h-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 120px 80px;
+      gap: 4px; border-radius: 8px; overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .h-photo-grid .p-large { grid-column: span 2; grid-row: span 2; }
+
+    .h-photo-grid img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    .h-report { margin-bottom: 1.5rem; }
+
+    .h-report h1 { font-size:1.2rem; font-weight:800; margin:1rem 0 .4rem; }
+    .h-report h2 { font-size:.95rem; font-weight:700; margin:1rem 0 .35rem; padding-bottom:.25rem; border-bottom:1px solid var(--border); }
+    .h-report h3 { font-size:.85rem; font-weight:700; margin:.8rem 0 .25rem; }
+    .h-report p  { font-size:.78rem; color:#444; line-height:1.7; margin:.25rem 0; }
+    .h-report ul,.h-report ol { padding-left:1.1rem; margin:.3rem 0; }
+    .h-report li { font-size:.78rem; line-height:1.7; color:#444; }
+    .h-report a  { color:var(--accent); }
+    .h-report strong { font-weight:700; color:var(--text); }
+    .h-report blockquote { border-left:3px solid var(--border); padding-left:.7rem; color:var(--muted); font-size:.75rem; }
+    .h-report table { width:100%; border-collapse:collapse; font-size:.74rem; margin:.5rem 0; }
+    .h-report th,.h-report td { border:1px solid var(--border); padding:.35rem .55rem; }
+    .h-report th { background:var(--bg); font-weight:700; }
+
+    .h-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; margin-bottom: 1.2rem; }
+
+    .h-r-card { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .h-r-card img { width:100%; height:110px; object-fit:cover; display:block; }
+    .h-r-card-ph { width:100%; height:110px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--border); }
+    .h-r-card-body { padding:.6rem .8rem; }
+    .h-r-card-name { font-size:.8rem; font-weight:700; margin-bottom:.15rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .h-r-card-cat  { font-size:.65rem; color:var(--accent); margin-bottom:.3rem; }
+    .h-r-card-addr { font-size:.68rem; color:var(--muted); line-height:1.5; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+
+    .h-loading {
+      text-align: center; padding: 2rem; font-size: .78rem; color: var(--muted);
+    }
+
+    .h-section-label {
+      font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
+      font-weight: 700; color: var(--muted);
+      padding-bottom: .4rem; border-bottom: 1px solid var(--border);
+      margin-bottom: .9rem;
+    }
   </style>
 </head>
 <body>
@@ -416,6 +525,7 @@
 
   <nav id="tab-nav">
     <button class="tab-btn active" onclick="switchTab('planner', this)">Planner</button>
+    <button class="tab-btn" onclick="switchTab('history', this)">History</button>
     <button class="tab-btn" onclick="switchTab('docs', this)">Docs</button>
   </nav>
 
@@ -471,6 +581,13 @@
         <div class="stay-cards" id="stay-cards"></div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-pane">
+    <div class="history-inner">
+      <div id="history-list"></div>
     </div>
   </div>
 
@@ -590,6 +707,143 @@ results/{DATE}_travel_plan.md
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
+    if (name === 'history') loadHistory();
+  }
+
+  // ── HISTORY ──────────────────────────────────────
+  let historyLoaded = false;
+
+  async function loadHistory() {
+    if (historyLoaded) return;
+    const container = document.getElementById('history-list');
+    container.innerHTML = '<div class="h-loading">불러오는 중...</div>';
+
+    try {
+      const res  = await fetch('/api/history');
+      const list = await res.json();
+      historyLoaded = true;
+
+      if (!list.length) {
+        container.innerHTML = '<div class="history-empty">저장된 리포트가 없습니다.<br>Planner에서 날짜를 선택해 첫 리포트를 생성해보세요.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      list.forEach(entry => {
+        const item = buildHistoryItem(entry);
+        container.appendChild(item);
+      });
+    } catch (e) {
+      container.innerHTML = '<div class="history-empty">히스토리를 불러오지 못했습니다.</div>';
+    }
+  }
+
+  function buildHistoryItem(entry) {
+    const { date, city, score, weather } = entry;
+    const tempStr = weather.avg_temp_c != null ? `${weather.avg_temp_c}°C` : '';
+    const humStr  = weather.humidity_pct != null ? `습도 ${weather.humidity_pct}%` : '';
+    const meta    = [tempStr, humStr, score ? `점수 ${score}` : ''].filter(Boolean).join(' · ');
+
+    const item = document.createElement('div');
+    item.className = 'h-item';
+    item.dataset.date = date;
+    item.dataset.loaded = 'false';
+
+    item.innerHTML = `
+      <div class="h-item-header" onclick="toggleHistoryItem(this)">
+        <div class="h-item-left">
+          <span class="h-item-date">${date}</span>
+          ${city ? `<span class="h-item-city">${city}</span>` : ''}
+          ${meta ? `<span class="h-item-meta">${meta}</span>` : ''}
+        </div>
+        <span class="h-toggle-icon">▼</span>
+      </div>
+      <div class="h-item-body">
+        <div class="h-item-content">
+          <div class="h-loading">리포트 불러오는 중...</div>
+        </div>
+      </div>`;
+
+    return item;
+  }
+
+  async function toggleHistoryItem(header) {
+    const item = header.closest('.h-item');
+    const isOpen = item.classList.contains('open');
+
+    // 같은 아이템 토글
+    if (isOpen) {
+      item.classList.remove('open');
+      return;
+    }
+
+    // 다른 열린 항목 닫기
+    document.querySelectorAll('.h-item.open').forEach(el => el.classList.remove('open'));
+    item.classList.add('open');
+
+    // 이미 로드됐으면 skip
+    if (item.dataset.loaded === 'true') return;
+
+    const date    = item.dataset.date;
+    const content = item.querySelector('.h-item-content');
+
+    try {
+      const res  = await fetch(`/api/results/${date}`);
+      if (!res.ok) throw new Error('결과 없음');
+      const data = await res.json();
+      item.dataset.loaded = 'true';
+      renderHistoryContent(content, data);
+    } catch (e) {
+      content.innerHTML = `<div class="h-loading" style="color:#dc2626">불러오기 실패: ${e.message}</div>`;
+    }
+  }
+
+  function renderHistoryContent(container, data) {
+    const { markdown, city_images, restaurants, stays, city } = data;
+    const cityName = city?.name || '';
+    let html = '';
+
+    // 도시 사진 그리드
+    const imgs = (city_images || []).filter(Boolean).slice(0, 6);
+    if (imgs.length) {
+      html += `<div class="h-section-label">${cityName} · 여행 사진</div>`;
+      html += `<div class="h-photo-grid">`;
+      imgs.forEach((url, i) => {
+        const cls = i === 0 ? 'p-large' : '';
+        html += `<div class="${cls}" style="overflow:hidden"><img src="${url}" alt="사진" onerror="this.parentElement.remove()"></div>`;
+      });
+      html += `</div>`;
+    }
+
+    // 마크다운 리포트
+    if (markdown) {
+      html += `<div class="h-section-label">여행 리포트</div>`;
+      html += `<div class="h-report">${marked.parse(markdown)}</div>`;
+    }
+
+    // 맛집 카드
+    if (restaurants?.length) {
+      html += `<div class="h-section-label">맛집 추천</div><div class="h-card-grid">`;
+      restaurants.forEach(r => {
+        const cat = r.category ? r.category.split('>').pop().trim() : '';
+        const img = r.image_url
+          ? `<img src="${r.image_url}" alt="${r.name}" onerror="this.nextElementSibling.style.display='flex';this.remove();">`
+          : '';
+        const ph = `<div class="h-r-card-ph" style="${r.image_url ? 'display:none' : ''}">🍽</div>`;
+        html += `
+          <div class="h-r-card">
+            ${img}${ph}
+            <div class="h-r-card-body">
+              <div class="h-r-card-name">${r.name}</div>
+              ${cat ? `<div class="h-r-card-cat">${cat}</div>` : ''}
+              <div class="h-r-card-addr">${r.address || ''}</div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    container.innerHTML = html;
   }
 
   // ── 날짜 범위 ─────────────────────────────────────

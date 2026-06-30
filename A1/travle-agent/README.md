@@ -61,6 +61,8 @@ TOUR_API_KEY=xxxxxxxxxxxxxxxx           # https://www.data.go.kr
 
 ## 실행
 
+### CLI
+
 ```bash
 # 정상 실행
 python travel_planner.py --date "2026-10-24"
@@ -75,7 +77,25 @@ python travel_planner.py --date "2026-01-01"
 python travel_planner.py --date "2028-01-01"
 ```
 
-### 실행 결과 예시
+### 웹 서버
+
+```bash
+# 서버 시작 (reload 모드 — 코드 변경 시 자동 재시작)
+.venv/bin/python server.py
+
+# 브라우저에서 접속
+http://localhost:8000
+```
+
+| 기능 | 설명 |
+|------|------|
+| Planner 탭 | 날짜 선택 → 실시간 로그 스트리밍 → 마크다운 리포트 + 사진 카드 |
+| History 탭 | 과거 생성된 리포트 목록 → 클릭 시 토글로 결과 확인 |
+| Docs 탭 | 요구사항·파이프라인·API·스키마 설명 |
+
+> 동일 날짜를 다시 실행하면 캐시(`results/`)에서 즉시 반환하며 API 호출을 생략한다.
+
+### CLI 실행 결과 예시
 
 ```
 [1/4] 날씨 데이터 조회 및 최적 도시 선정 중...
