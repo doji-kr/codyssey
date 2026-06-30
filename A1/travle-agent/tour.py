@@ -79,6 +79,7 @@ def fetch_festivals(area_code: int, date_str: str, errors: list) -> list:
                 "eventplace": item.get("addr1", ""),
                 "start":      start,
                 "end":        end,
+                "image_url":  item.get("firstimage", ""),
             })
     return result
 
@@ -97,9 +98,9 @@ def fetch_stays(area_code: int, errors: list) -> list:
     result = []
     for item in raw:
         result.append({
-            "name":    item.get("title", ""),
-            "address": item.get("addr1", ""),
-            "tel":     item.get("tel", ""),
-            "url":     item.get("firstimage", ""),
+            "name":      item.get("title", ""),
+            "address":   item.get("addr1", ""),
+            "tel":       item.get("tel", ""),
+            "image_url": item.get("firstimage", ""),
         })
     return result

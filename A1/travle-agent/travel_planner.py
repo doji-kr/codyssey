@@ -77,7 +77,7 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
         log(f"- 최종 마크다운    : results/{date_str}_travel_plan.md")
         json_path = str(Path("results") / f"{date_str}_raw_data.json")
         md_path   = str(Path("results") / f"{date_str}_travel_plan.md")
-        return json_path, md_path, markdown
+        return json_path, md_path, markdown, raw_data
 
     # ── 1단계: 날씨 기반 도시 선정 ─────────────────────────────────────
     log("[1/4] 날씨 데이터 조회 및 최적 도시 선정 중...")
@@ -92,10 +92,11 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
     stays     = tour.fetch_stays(area_code, errors)
     log(f"      ✔ 축제 {len(festivals)}건 / 숙박 {len(stays)}건")
 
-    # ── 3단계: Kakao Local 맛집 ─────────────────────────────────────────
-    log("[3/4] Kakao Local 맛집 검색 중...")
-    restaurants = places.fetch_restaurants(city_name, errors)
-    log(f"      ✔ 맛집 {len(restaurants)}건")
+    # ── 3단계: Kakao Local 맛집 + 도시 이미지 ──────────────────────────
+    log("[3/4] Kakao Local 맛집 및 이미지 검색 중...")
+    restaurants  = places.fetch_restaurants(city_name, errors)
+    city_images  = places.fetch_city_images(city_name, errors)
+    log(f"      ✔ 맛집 {len(restaurants)}건 / 도시 이미지 {len(city_images)}장")
 
     # ── raw_data 조립 ────────────────────────────────────────────────────
     raw_data = {
@@ -106,6 +107,7 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
             "weather":   city_result["weather"],
             "score":     city_result["score"],
         },
+        "city_images": city_images,
         "festivals":   festivals,
         "restaurants": restaurants,
         "stays":       stays,
@@ -129,7 +131,7 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
         log(f"- 누적 오류 {len(errors)}건")
     log("=" * 60)
 
-    return json_path, md_path, markdown
+    return json_path, md_path, markdown, raw_data
 
 
 def main() -> None:

@@ -40,12 +40,16 @@ async def plan_stream(date: str):
 
     def run_pipeline():
         try:
-            json_path, md_path, markdown = travel_planner.run(date, log=log)
+            json_path, md_path, markdown, raw_data = travel_planner.run(date, log=log)
             msg_queue.put({
-                "type":      "done",
-                "markdown":  markdown,
-                "json_path": json_path,
-                "md_path":   md_path,
+                "type":        "done",
+                "markdown":    markdown,
+                "city_images": raw_data.get("city_images", []),
+                "restaurants": raw_data.get("restaurants", []),
+                "stays":       raw_data.get("stays", []),
+                "festivals":   raw_data.get("festivals", []),
+                "json_path":   json_path,
+                "md_path":     md_path,
             })
         except Exception as e:
             msg_queue.put({"type": "error", "message": str(e)})

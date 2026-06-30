@@ -9,13 +9,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #e8e6e1;
-      --panel:    #ffffff;
-      --text:     #111111;
-      --muted:    #888888;
-      --border:   #d4d2cd;
-      --accent:   #d45a1a;
-      --sidebar-w: 42%;
+      --bg:      #e8e6e1;
+      --panel:   #ffffff;
+      --text:    #111111;
+      --muted:   #888888;
+      --border:  #d4d2cd;
+      --accent:  #d45a1a;
+      --sidebar: 42%;
     }
 
     body {
@@ -27,12 +27,11 @@
       overflow: hidden;
     }
 
-    /* ── LEFT SIDEBAR ────────────────────────────────── */
+    /* ── SIDEBAR ─────────────────────────────── */
     #sidebar {
-      width: var(--sidebar-w);
-      min-width: 320px;
+      width: var(--sidebar);
+      min-width: 300px;
       height: 100vh;
-      background: var(--bg);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -41,10 +40,8 @@
       flex-shrink: 0;
     }
 
-    .sidebar-top {}
-
     .version-tag {
-      font-size: .65rem;
+      font-size: .62rem;
       letter-spacing: .15em;
       text-transform: uppercase;
       color: var(--muted);
@@ -54,7 +51,7 @@
     #sidebar h1 {
       font-size: 2.6rem;
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1.08;
       letter-spacing: -.02em;
       margin-bottom: 1rem;
     }
@@ -62,9 +59,9 @@
     #sidebar h1 span { color: var(--accent); }
 
     #sidebar .desc {
-      font-size: .85rem;
+      font-size: .82rem;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.65;
       max-width: 280px;
     }
 
@@ -72,39 +69,29 @@
       margin-top: 2.5rem;
       display: flex;
       flex-direction: column;
-      gap: .6rem;
+      gap: .55rem;
     }
 
     .step {
       display: flex;
       align-items: center;
       gap: .7rem;
-      font-size: .75rem;
+      font-size: .73rem;
       color: var(--muted);
-      letter-spacing: .03em;
     }
 
     .step-num {
-      width: 20px;
-      height: 20px;
+      width: 20px; height: 20px;
       border: 1px solid var(--border);
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .65rem;
-      font-weight: 700;
-      flex-shrink: 0;
-      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .62rem; font-weight: 700;
+      flex-shrink: 0; color: var(--text);
     }
 
-    .sidebar-bottom {
-      font-size: .7rem;
-      color: var(--muted);
-      letter-spacing: .05em;
-    }
+    .sidebar-bottom { font-size: .68rem; color: var(--muted); letter-spacing: .05em; }
 
-    /* ── RIGHT PANEL ─────────────────────────────────── */
+    /* ── MAIN ────────────────────────────────── */
     #main {
       flex: 1;
       height: 100vh;
@@ -123,51 +110,31 @@
     }
 
     .tab-btn {
-      font-size: .68rem;
+      font-size: .65rem;
       letter-spacing: .12em;
       text-transform: uppercase;
       font-weight: 600;
       color: var(--muted);
       padding: 1.1rem 0;
       margin-right: 2rem;
-      border: none;
-      background: none;
-      cursor: pointer;
+      border: none; background: none; cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: color .15s, border-color .15s;
     }
 
-    .tab-btn.active {
-      color: var(--text);
-      border-bottom-color: var(--text);
-    }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
 
-    /* Tab content */
-    .tab-pane { display: none; flex: 1; overflow-y: auto; padding: 2.5rem; }
+    .tab-pane { display: none; flex: 1; overflow-y: auto; }
     .tab-pane.active { display: flex; flex-direction: column; }
 
-    /* ── PLANNER tab ─────────────────────────────────── */
-    .planner-header {
-      margin-bottom: 2rem;
-    }
+    /* ── PLANNER ─────────────────────────────── */
+    .planner-inner { padding: 2.5rem; }
 
-    .planner-header h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: .35rem;
-    }
+    .planner-header { margin-bottom: 1.8rem; }
+    .planner-header h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: .3rem; }
+    .planner-header p  { font-size: .78rem; color: var(--muted); }
 
-    .planner-header p {
-      font-size: .8rem;
-      color: var(--muted);
-    }
-
-    .date-row {
-      display: flex;
-      gap: .75rem;
-      margin-bottom: 1.5rem;
-      align-items: center;
-    }
+    .date-row { display: flex; gap: .75rem; margin-bottom: 1.2rem; }
 
     #date-input {
       flex: 1;
@@ -175,293 +142,287 @@
       border-radius: 6px;
       padding: .65rem 1rem;
       font-size: .85rem;
-      color: var(--text);
       background: var(--bg);
       outline: none;
-      transition: border-color .15s;
+      color: var(--text);
     }
-
     #date-input:focus { border-color: var(--text); }
 
     #run-btn {
-      background: var(--text);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: .65rem 1.5rem;
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-weight: 600;
-      cursor: pointer;
+      background: var(--text); color: #fff;
+      border: none; border-radius: 6px;
+      padding: .65rem 1.4rem;
+      font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
       transition: opacity .15s;
-      white-space: nowrap;
     }
+    #run-btn:disabled { opacity: .35; cursor: not-allowed; }
+    #run-btn:hover:not(:disabled) { opacity: .7; }
 
-    #run-btn:disabled { opacity: .4; cursor: not-allowed; }
-    #run-btn:hover:not(:disabled) { opacity: .75; }
-
-    #date-error {
-      font-size: .75rem;
-      color: #dc2626;
-      margin-top: -.9rem;
-      margin-bottom: .8rem;
-      display: none;
-    }
+    #date-error { font-size: .73rem; color: #dc2626; margin-bottom: .8rem; display: none; }
 
     /* Log */
     #log-section {
-      background: #0f0f0f;
-      border-radius: 8px;
-      padding: 1.2rem 1.4rem;
-      margin-bottom: 1.5rem;
-      display: none;
+      background: #0f0f0f; border-radius: 8px;
+      padding: 1.1rem 1.3rem; margin-bottom: 1.5rem; display: none;
     }
 
     #log-header {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      margin-bottom: .75rem;
+      display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem;
     }
 
     #log-spinner {
       width: 10px; height: 10px;
-      border: 2px solid #3b82f6;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
+      border: 2px solid #3b82f6; border-top-color: transparent;
+      border-radius: 50%; animation: spin .7s linear infinite; display: none;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    #log-label {
-      font-size: .65rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: #555;
-    }
+    #log-label { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #555; }
 
     #log-output {
       font-family: 'Courier New', monospace;
-      font-size: .72rem;
-      color: #4ade80;
-      line-height: 1.6;
-      max-height: 180px;
-      overflow-y: auto;
+      font-size: .7rem; color: #4ade80; line-height: 1.6;
+      max-height: 160px; overflow-y: auto;
     }
 
-    /* Report */
-    #report-section { display: none; }
-
-    .report-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    #error-section {
+      background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px;
+      padding: .9rem 1.1rem; font-size: .8rem; color: #be123c; display: none;
       margin-bottom: 1.2rem;
-      padding-bottom: .8rem;
-      border-bottom: 1px solid var(--border);
     }
 
-    .report-meta-left {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
+    /* ── CITY PHOTO GRID ─────────────────────── */
+    #photo-grid-section { display: none; margin-bottom: 2rem; }
+
+    .photo-grid-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .8rem;
     }
 
-    .report-label {
-      font-size: .65rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      font-weight: 600;
-      color: var(--muted);
+    .photo-grid-header .city-label {
+      font-size: .62rem; letter-spacing: .12em;
+      text-transform: uppercase; font-weight: 700; color: var(--muted);
     }
 
     #cache-badge {
-      background: #fef3c7;
-      color: #92400e;
-      font-size: .6rem;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      padding: .2rem .55rem;
-      border-radius: 20px;
-      display: none;
+      background: #fef3c7; color: #92400e;
+      font-size: .58rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .2rem .55rem; border-radius: 20px; display: none;
     }
 
-    #report-output h1 { font-size:1.4rem; font-weight:800; margin:1.2rem 0 .5rem; }
-    #report-output h2 { font-size:1.05rem; font-weight:700; margin:1.2rem 0 .4rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); }
-    #report-output h3 { font-size:.9rem; font-weight:700; margin:.9rem 0 .3rem; }
-    #report-output p  { font-size:.82rem; color:#333; line-height:1.7; margin:.3rem 0; }
-    #report-output ul,#report-output ol { padding-left:1.2rem; margin:.4rem 0; }
-    #report-output li { font-size:.82rem; line-height:1.7; color:#333; }
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 140px 100px;
+      gap: 4px;
+      border-radius: 10px; overflow: hidden;
+    }
+
+    .photo-grid img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform .3s ease;
+    }
+
+    .photo-grid img:hover { transform: scale(1.04); }
+
+    .photo-grid .p-large {
+      grid-column: span 2; grid-row: span 2; height: auto;
+    }
+
+    /* ── MARKDOWN REPORT ─────────────────────── */
+    #report-section { display: none; margin-bottom: 2rem; }
+
+    .section-divider {
+      font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
+      font-weight: 700; color: var(--muted);
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.2rem;
+    }
+
+    #report-output h1 { font-size:1.35rem; font-weight:800; margin:1.2rem 0 .5rem; }
+    #report-output h2 { font-size:1rem; font-weight:700; margin:1.1rem 0 .4rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); }
+    #report-output h3 { font-size:.88rem; font-weight:700; margin:.9rem 0 .3rem; }
+    #report-output p  { font-size:.8rem; color:#444; line-height:1.75; margin:.3rem 0; }
+    #report-output ul,#report-output ol { padding-left:1.2rem; margin:.35rem 0; }
+    #report-output li { font-size:.8rem; line-height:1.75; color:#444; }
     #report-output a  { color:var(--accent); }
     #report-output strong { font-weight:700; color:var(--text); }
-    #report-output blockquote { border-left:3px solid var(--border); padding-left:.8rem; color:var(--muted); margin:.5rem 0; font-size:.8rem; }
-    #report-output table { width:100%; border-collapse:collapse; margin:.6rem 0; font-size:.78rem; }
+    #report-output blockquote { border-left:3px solid var(--border); padding-left:.8rem; color:var(--muted); margin:.5rem 0; font-size:.78rem; }
+    #report-output table { width:100%; border-collapse:collapse; margin:.6rem 0; font-size:.76rem; }
     #report-output th,#report-output td { border:1px solid var(--border); padding:.4rem .6rem; }
     #report-output th { background:var(--bg); font-weight:700; }
 
-    /* Error */
-    #error-section {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
-      border-radius: 8px;
-      padding: 1rem 1.2rem;
-      font-size: .82rem;
-      color: #be123c;
-      display: none;
+    /* ── RESTAURANT CARDS ────────────────────── */
+    #restaurant-section { display: none; margin-bottom: 2rem; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .75rem;
+      margin-top: .8rem;
     }
 
-    /* ── DOCS tab ─────────────────────────────────────── */
-    .docs-section {
-      margin-bottom: 2.5rem;
+    .r-card {
+      border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      transition: box-shadow .2s;
     }
+
+    .r-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+
+    .r-card-img {
+      width: 100%; height: 130px;
+      object-fit: cover; background: var(--bg);
+      display: block;
+    }
+
+    .r-card-img-placeholder {
+      width: 100%; height: 130px;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: var(--border);
+    }
+
+    .r-card-body { padding: .75rem .9rem; }
+
+    .r-card-name {
+      font-size: .85rem; font-weight: 700; margin-bottom: .2rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .r-card-cat {
+      font-size: .68rem; color: var(--accent);
+      margin-bottom: .35rem; letter-spacing: .02em;
+    }
+
+    .r-card-addr {
+      font-size: .7rem; color: var(--muted); line-height: 1.5;
+      margin-bottom: .5rem;
+      overflow: hidden; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+
+    .r-card-link {
+      font-size: .65rem; letter-spacing: .08em; text-transform: uppercase;
+      font-weight: 600; color: var(--text); text-decoration: none;
+    }
+    .r-card-link:hover { color: var(--accent); }
+
+    /* ── STAY CARDS ──────────────────────────── */
+    #stay-section { display: none; margin-bottom: 2rem; }
+
+    .stay-cards { display: flex; flex-direction: column; gap: .6rem; margin-top: .8rem; }
+
+    .s-card {
+      display: flex; gap: 0;
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .s-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+
+    .s-card-img {
+      width: 90px; height: 80px; flex-shrink: 0;
+      object-fit: cover; background: var(--bg);
+    }
+
+    .s-card-img-placeholder {
+      width: 90px; height: 80px; flex-shrink: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: var(--border);
+    }
+
+    .s-card-body {
+      padding: .6rem .8rem;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .s-card-name { font-size: .82rem; font-weight: 700; margin-bottom: .15rem; }
+    .s-card-addr { font-size: .7rem; color: var(--muted); line-height: 1.5; }
+    .s-card-tel  { font-size: .68rem; color: var(--muted); margin-top: .15rem; }
+
+    /* ── DOCS TAB ────────────────────────────── */
+    .docs-inner { padding: 2.5rem; }
+
+    .docs-section { margin-bottom: 2.5rem; }
 
     .docs-section-title {
-      font-size: .65rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 1rem;
-      padding-bottom: .5rem;
-      border-bottom: 1px solid var(--border);
+      font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+      font-weight: 700; color: var(--muted);
+      margin-bottom: 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border);
     }
-
-    .docs-section h3 {
-      font-size: .95rem;
-      font-weight: 700;
-      margin-bottom: .4rem;
-    }
-
-    .docs-section p, .docs-section li {
-      font-size: .82rem;
-      color: #444;
-      line-height: 1.7;
-    }
-
-    .docs-section ul { padding-left: 1.2rem; margin-top: .3rem; }
-    .docs-section li { margin-bottom: .2rem; }
 
     .req-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .8rem;
-      margin-top: .8rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .8rem;
     }
 
     .req-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.1rem;
+      border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem;
     }
 
     .req-card .card-num {
-      font-size: .62rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--accent);
-      font-weight: 700;
-      margin-bottom: .4rem;
+      font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent); font-weight: 700; margin-bottom: .4rem;
     }
 
-    .req-card h4 {
-      font-size: .85rem;
-      font-weight: 700;
-      margin-bottom: .35rem;
-    }
+    .req-card h4 { font-size: .85rem; font-weight: 700; margin-bottom: .35rem; }
+    .req-card p  { font-size: .75rem; color: var(--muted); line-height: 1.6; }
 
-    .req-card p {
-      font-size: .75rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .pipeline-diagram {
-      background: var(--bg);
-      border-radius: 8px;
-      padding: 1.2rem 1.4rem;
+    .mono-box {
+      background: var(--bg); border-radius: 8px;
+      padding: 1.1rem 1.3rem;
       font-family: 'Courier New', monospace;
-      font-size: .72rem;
-      color: #444;
-      line-height: 1.7;
-      margin-top: .8rem;
+      font-size: .7rem; color: #444; line-height: 1.75; margin-top: .8rem;
     }
 
-    .api-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: .8rem;
-      font-size: .78rem;
-    }
-
+    .api-table { width: 100%; border-collapse: collapse; margin-top: .8rem; font-size: .76rem; }
     .api-table th {
-      background: var(--bg);
-      text-align: left;
-      padding: .5rem .8rem;
-      font-size: .65rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
+      background: var(--bg); text-align: left; padding: .5rem .8rem;
+      font-size: .62rem; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); border-bottom: 1px solid var(--border);
     }
-
-    .api-table td {
-      padding: .6rem .8rem;
-      border-bottom: 1px solid var(--border);
-      color: #444;
-      vertical-align: top;
-    }
-
+    .api-table td { padding: .6rem .8rem; border-bottom: 1px solid var(--border); color: #444; vertical-align: top; }
     .api-table td:first-child { font-weight: 600; color: var(--text); }
 
     code {
-      background: var(--bg);
-      padding: .1rem .35rem;
-      border-radius: 3px;
-      font-size: .75rem;
-      font-family: 'Courier New', monospace;
+      background: var(--bg); padding: .1rem .3rem; border-radius: 3px;
+      font-size: .72rem; font-family: 'Courier New', monospace;
     }
   </style>
 </head>
 <body>
 
-  <!-- LEFT SIDEBAR -->
-  <aside id="sidebar">
-    <div class="sidebar-top">
-      <div class="version-tag">Travel Agent · v1</div>
-
-      <h1>Plan your<br>perfect<br><span>trip.</span></h1>
-
-      <p class="desc">
-        날씨 평년값으로 최적 여행지를 결정론적으로 선정하고,
-        축제·맛집·숙박 실데이터를 수집해 LLM이 하루 일정을 만들어 드립니다.
-      </p>
-
-      <div class="pipeline-steps">
-        <div class="step"><span class="step-num">1</span> Open-Meteo 기후 평년값 → 쾌적도 점수</div>
-        <div class="step"><span class="step-num">2</span> TourAPI searchFestival2 → 축제·행사</div>
-        <div class="step"><span class="step-num">3</span> Kakao Local → 맛집 10곳</div>
-        <div class="step"><span class="step-num">4</span> TourAPI searchStay2 → 숙박</div>
-        <div class="step"><span class="step-num">5</span> OpenRouter Gemini-2.5-flash → 리포트</div>
-      </div>
+<!-- LEFT SIDEBAR -->
+<aside id="sidebar">
+  <div>
+    <div class="version-tag">Travel Agent · v1</div>
+    <h1>Plan your<br>perfect<br><span>trip.</span></h1>
+    <p class="desc">날씨 평년값으로 최적 여행지를 결정론적으로 선정하고, 축제·맛집·숙박 실데이터를 수집해 LLM이 하루 일정을 만들어 드립니다.</p>
+    <div class="pipeline-steps">
+      <div class="step"><span class="step-num">1</span> Open-Meteo 기후 → 쾌적도 점수</div>
+      <div class="step"><span class="step-num">2</span> TourAPI → 축제·행사</div>
+      <div class="step"><span class="step-num">3</span> Kakao Local → 맛집 + 이미지</div>
+      <div class="step"><span class="step-num">4</span> TourAPI → 숙박</div>
+      <div class="step"><span class="step-num">5</span> Gemini-2.5-flash → 리포트</div>
     </div>
+  </div>
+  <div class="sidebar-bottom">by doji · 2026</div>
+</aside>
 
-    <div class="sidebar-bottom">by doji · 2026</div>
-  </aside>
+<!-- RIGHT MAIN -->
+<main id="main">
 
-  <!-- RIGHT MAIN -->
-  <main id="main">
+  <nav id="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('planner', this)">Planner</button>
+    <button class="tab-btn" onclick="switchTab('docs', this)">Docs</button>
+  </nav>
 
-    <!-- Tab nav -->
-    <nav id="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('planner', this)">Planner</button>
-      <button class="tab-btn" onclick="switchTab('docs', this)">Docs</button>
-    </nav>
+  <!-- PLANNER TAB -->
+  <div id="tab-planner" class="tab-pane active">
+    <div class="planner-inner">
 
-    <!-- PLANNER tab -->
-    <div id="tab-planner" class="tab-pane active">
       <div class="planner-header">
         <h2>여행 날짜를 선택하세요</h2>
         <p>내일부터 1년 이내 날짜만 입력 가능합니다. 동일 날짜는 캐시에서 즉시 반환됩니다.</p>
@@ -472,9 +433,9 @@
         <button id="run-btn" onclick="runPipeline()">리포트 생성 →</button>
       </div>
       <div id="date-error"></div>
-
       <div id="error-section"><strong>오류:</strong> <span id="error-msg"></span></div>
 
+      <!-- 로그 -->
       <div id="log-section">
         <div id="log-header">
           <div id="log-spinner"></div>
@@ -483,19 +444,39 @@
         <div id="log-output"></div>
       </div>
 
-      <div id="report-section">
-        <div class="report-meta">
-          <div class="report-meta-left">
-            <span class="report-label">Travel Report</span>
-            <span id="cache-badge">캐시</span>
-          </div>
+      <!-- 도시 사진 그리드 -->
+      <div id="photo-grid-section">
+        <div class="photo-grid-header">
+          <span class="city-label" id="city-label">도시 사진</span>
+          <span id="cache-badge">캐시</span>
         </div>
+        <div class="photo-grid" id="photo-grid"></div>
+      </div>
+
+      <!-- LLM 마크다운 리포트 -->
+      <div id="report-section">
+        <div class="section-divider">여행 리포트</div>
         <div id="report-output"></div>
       </div>
-    </div>
 
-    <!-- DOCS tab -->
-    <div id="tab-docs" class="tab-pane">
+      <!-- 맛집 카드 -->
+      <div id="restaurant-section">
+        <div class="section-divider">맛집 추천</div>
+        <div class="card-grid" id="restaurant-cards"></div>
+      </div>
+
+      <!-- 숙박 카드 -->
+      <div id="stay-section">
+        <div class="section-divider">숙박 추천</div>
+        <div class="stay-cards" id="stay-cards"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DOCS TAB -->
+  <div id="tab-docs" class="tab-pane">
+    <div class="docs-inner">
 
       <div class="docs-section">
         <div class="docs-section-title">과제 요구사항</div>
@@ -525,7 +506,7 @@
 
       <div class="docs-section">
         <div class="docs-section-title">파이프라인 구현</div>
-        <div class="pipeline-diagram">
+        <div class="mono-box">
 [--date YYYY-MM-DD]
        │
        ▼
@@ -538,8 +519,9 @@
        │    searchFestival2  (당월 1일~, 기간 내 필터)
        │    searchStay2      (지역코드 기반, 10건)
        │
-       ├─ ③ places.py — Kakao Local
+       ├─ ③ places.py — Kakao Local + Image Search
        │    "{도시명} 맛집" + category_group_code=FD6
+       │    맛집별 이미지, 도시 여행 이미지 6장 병렬 수집
        │
        └─ ④ llm.py — OpenRouter → Gemini-2.5-flash
             수집 데이터 → 오전/오후/저녁 마크다운 리포트
@@ -548,181 +530,268 @@
        ▼
 results/{DATE}_raw_data.json
 results/{DATE}_travel_plan.md
-       │
-       ▼  (재실행 시)
-[캐시 HIT] → API·LLM 생략, 기존 파일 즉시 반환</div>
+       │  (재실행 시)
+       └─ [캐시 HIT] → API·LLM 생략, 즉시 반환</div>
       </div>
 
       <div class="docs-section">
         <div class="docs-section-title">사용 API</div>
         <table class="api-table">
-          <thead>
-            <tr><th>서비스</th><th>용도</th><th>비고</th></tr>
-          </thead>
+          <thead><tr><th>서비스</th><th>용도</th><th>비고</th></tr></thead>
           <tbody>
-            <tr>
-              <td>Open-Meteo Climate</td>
-              <td>11개 도시 기후 평년값 (기온·습도)</td>
-              <td>API 키 불필요. 기준연도 2000, ±3일 윈도우 평균.</td>
-            </tr>
-            <tr>
-              <td>TourAPI KorService2</td>
-              <td>축제(<code>searchFestival2</code>), 숙박(<code>searchStay2</code>)</td>
-              <td>공공데이터포털 인증키. 범용 함수로 엔드포인트 분리.</td>
-            </tr>
-            <tr>
-              <td>Kakao Local</td>
-              <td>맛집 키워드 검색</td>
-              <td>REST API 키. <code>FD6</code> 카테고리 필터.</td>
-            </tr>
-            <tr>
-              <td>OpenRouter → Gemini-2.5-flash</td>
-              <td>마크다운 리포트 생성</td>
-              <td>LLM은 마지막 단계에서만 사용. 실패 시 폴백 반환.</td>
-            </tr>
+            <tr><td>Open-Meteo Climate</td><td>11개 도시 기후 평년값 (기온·습도)</td><td>API 키 불필요. 기준연도 2000, ±3일 평균.</td></tr>
+            <tr><td>TourAPI KorService2</td><td>축제 <code>searchFestival2</code>, 숙박 <code>searchStay2</code></td><td>공공데이터포털 인증키. 범용 함수로 엔드포인트 분리.</td></tr>
+            <tr><td>Kakao Local</td><td>맛집 키워드 검색</td><td>REST API 키. <code>FD6</code> 카테고리 필터.</td></tr>
+            <tr><td>Kakao Image Search</td><td>맛집·도시 이미지 수집</td><td>동일 REST API 키. <code>ThreadPoolExecutor</code> 병렬 처리.</td></tr>
+            <tr><td>OpenRouter → Gemini-2.5-flash</td><td>마크다운 리포트 생성</td><td>LLM은 마지막 단계에서만 사용. 실패 시 폴백 반환.</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="docs-section">
-        <div class="docs-section-title">산출물 스키마</div>
-        <h3 style="font-size:.82rem; font-weight:700; margin-bottom:.4rem;">raw_data.json</h3>
-        <div class="pipeline-diagram">{
+        <div class="docs-section-title">raw_data.json 스키마</div>
+        <div class="mono-box">{
   "date": "2026-07-15",
-  "city": {
-    "name": "속초", "area_code": 32,
+  "city": { "name": "속초", "area_code": 32,
     "weather": { "avg_temp_c": 24.2, "humidity_pct": 80, "source": "open-meteo-climate" },
-    "score": 0.568
-  },
-  "festivals":   [ { "title": "", "eventplace": "", "start": "", "end": "" } ],
-  "restaurants": [ { "name": "", "address": "", "category": "", "url": "", "x": "", "y": "" } ],
-  "stays":       [ { "name": "", "address": "", "tel": "", "url": "" } ],
-  "errors":      [ { "step": "", "type": "", "message": "" } ]
+    "score": 0.568 },
+  "city_images":   [ "https://..." ],
+  "festivals":     [ { "title": "", "eventplace": "", "start": "", "end": "", "image_url": "" } ],
+  "restaurants":   [ { "name": "", "address": "", "category": "", "url": "", "x": "", "y": "", "image_url": "" } ],
+  "stays":         [ { "name": "", "address": "", "tel": "", "image_url": "" } ],
+  "errors":        [ { "step": "", "type": "", "message": "" } ]
 }</div>
       </div>
 
       <div class="docs-section">
         <div class="docs-section-title">파일 구조</div>
-        <div class="pipeline-diagram">travel-planner/
+        <div class="mono-box">travel-planner/
 ├── travel_planner.py   — CLI 진입점 + 파이프라인 오케스트레이터
 ├── weather.py          — Open-Meteo + 쾌적도 점수 계산
 ├── tour.py             — TourAPI 범용 클라이언트 (축제·숙박)
-├── places.py           — Kakao Local 맛집 검색
+├── places.py           — Kakao Local 맛집 + Image Search
 ├── llm.py              — OpenRouter LLM 리포트 생성
 ├── report.py           — JSON·MD 파일 저장
 ├── server.py           — FastAPI + SSE 웹 서버
 ├── static/index.html   — 이 페이지
 ├── .env                — API 키 (Git 제외)
-├── .env.example        — 키 템플릿
 └── results/            — 생성된 리포트 저장소</div>
       </div>
 
-    </div><!-- /tab-docs -->
+    </div>
+  </div>
 
-  </main>
+</main>
 
-  <script>
-    // ── 탭 전환 ────────────────────────────────────────
-    function switchTab(name, btn) {
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + name).classList.add('active');
-      btn.classList.add('active');
+<script>
+  // ── 탭 전환 ──────────────────────────────────────
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── 날짜 범위 ─────────────────────────────────────
+  const dateInput = document.getElementById('date-input');
+  const today    = new Date();
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const maxDate  = new Date(today); maxDate.setDate(today.getDate() + 365);
+  dateInput.min   = tomorrow.toISOString().slice(0, 10);
+  dateInput.max   = maxDate.toISOString().slice(0, 10);
+  dateInput.value = tomorrow.toISOString().slice(0, 10);
+
+  // ── 유틸 ─────────────────────────────────────────
+  function setRunning(v) { document.getElementById('run-btn').disabled = v; }
+
+  function hideResults() {
+    ['log-section','error-section','photo-grid-section',
+     'report-section','restaurant-section','stay-section'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById('log-output').innerHTML = '';
+    document.getElementById('report-output').innerHTML = '';
+    document.getElementById('restaurant-cards').innerHTML = '';
+    document.getElementById('stay-cards').innerHTML = '';
+    document.getElementById('photo-grid').innerHTML = '';
+    document.getElementById('cache-badge').style.display = 'none';
+    document.getElementById('date-error').style.display = 'none';
+  }
+
+  function appendLog(msg) {
+    const el = document.getElementById('log-output');
+    const div = document.createElement('div');
+    div.textContent = msg;
+    el.appendChild(div);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // ── 도시 사진 그리드 ──────────────────────────────
+  function renderPhotoGrid(images, cityName) {
+    const sec   = document.getElementById('photo-grid-section');
+    const grid  = document.getElementById('photo-grid');
+    const label = document.getElementById('city-label');
+    const valid = images.filter(Boolean).slice(0, 6);
+    if (!valid.length) return;
+
+    label.textContent = `${cityName} · 여행 사진`;
+    grid.innerHTML = '';
+
+    valid.forEach((url, i) => {
+      const wrapper = document.createElement('div');
+      if (i === 0) wrapper.classList.add('p-large');
+      wrapper.style.overflow = 'hidden';
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = `${cityName} 여행 사진 ${i + 1}`;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease;';
+      img.onmouseover = () => img.style.transform = 'scale(1.05)';
+      img.onmouseout  = () => img.style.transform = 'scale(1)';
+      img.onerror = () => wrapper.remove();
+
+      wrapper.appendChild(img);
+      grid.appendChild(wrapper);
+    });
+
+    sec.style.display = 'block';
+  }
+
+  // ── 맛집 카드 ────────────────────────────────────
+  function renderRestaurants(list) {
+    const sec  = document.getElementById('restaurant-section');
+    const grid = document.getElementById('restaurant-cards');
+    if (!list || !list.length) return;
+
+    list.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'r-card';
+
+      const imgHtml = r.image_url
+        ? `<img class="r-card-img" src="${r.image_url}" alt="${r.name}" onerror="this.parentElement.querySelector('.r-card-img-placeholder').style.display='flex';this.remove();">`
+        : '';
+      const placeholder = `<div class="r-card-img-placeholder" style="${r.image_url ? 'display:none' : ''}">🍽</div>`;
+
+      const cat = r.category ? r.category.split('>').pop().trim() : '';
+      const link = r.url
+        ? `<a href="${r.url}" target="_blank" class="r-card-link">자세히 보기 →</a>`
+        : '';
+
+      card.innerHTML = `
+        ${imgHtml}${placeholder}
+        <div class="r-card-body">
+          <div class="r-card-name">${r.name}</div>
+          ${cat ? `<div class="r-card-cat">${cat}</div>` : ''}
+          <div class="r-card-addr">${r.address || '주소 정보 없음'}</div>
+          ${link}
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    sec.style.display = 'block';
+  }
+
+  // ── 숙박 카드 ────────────────────────────────────
+  function renderStays(list) {
+    const sec   = document.getElementById('stay-section');
+    const cards = document.getElementById('stay-cards');
+    if (!list || !list.length) return;
+
+    list.slice(0, 5).forEach(s => {
+      const card = document.createElement('div');
+      card.className = 's-card';
+
+      const imgHtml = s.image_url
+        ? `<img class="s-card-img" src="${s.image_url}" alt="${s.name}" onerror="this.nextElementSibling.style.display='flex';this.remove();">`
+        : '';
+      const placeholder = `<div class="s-card-img-placeholder" style="${s.image_url ? 'display:none' : ''}">🏨</div>`;
+
+      card.innerHTML = `
+        ${imgHtml}${placeholder}
+        <div class="s-card-body">
+          <div class="s-card-name">${s.name}</div>
+          <div class="s-card-addr">${s.address || ''}</div>
+          ${s.tel ? `<div class="s-card-tel">${s.tel}</div>` : ''}
+        </div>`;
+      cards.appendChild(card);
+    });
+
+    sec.style.display = 'block';
+  }
+
+  // ── 파이프라인 실행 ──────────────────────────────
+  function runPipeline() {
+    const date = dateInput.value;
+    if (!date) {
+      const err = document.getElementById('date-error');
+      err.textContent = '날짜를 선택하세요.';
+      err.style.display = 'block';
+      return;
     }
 
-    // ── 날짜 범위 설정 ──────────────────────────────────
-    const dateInput = document.getElementById('date-input');
-    const today     = new Date();
-    const tomorrow  = new Date(today); tomorrow.setDate(today.getDate() + 1);
-    const maxDate   = new Date(today); maxDate.setDate(today.getDate() + 365);
-    dateInput.min   = tomorrow.toISOString().slice(0, 10);
-    dateInput.max   = maxDate.toISOString().slice(0, 10);
-    dateInput.value = tomorrow.toISOString().slice(0, 10);
+    hideResults();
+    setRunning(true);
 
-    // ── 헬퍼 ───────────────────────────────────────────
-    function setRunning(v) { document.getElementById('run-btn').disabled = v; }
+    const logSec = document.getElementById('log-section');
+    logSec.style.display = 'block';
+    document.getElementById('log-spinner').style.display = 'block';
+    document.getElementById('log-label').textContent = '파이프라인 실행 중';
 
-    function hideAll() {
-      ['log-section','report-section','error-section'].forEach(id => {
-        document.getElementById(id).style.display = 'none';
-      });
-      document.getElementById('log-output').innerHTML = '';
-      document.getElementById('report-output').innerHTML = '';
-      document.getElementById('cache-badge').style.display = 'none';
-      document.getElementById('date-error').style.display = 'none';
-    }
+    const evtSource = new EventSource(`/api/plan?date=${date}`);
 
-    function appendLog(msg) {
-      const el   = document.getElementById('log-output');
-      const line = document.createElement('div');
-      line.textContent = msg;
-      el.appendChild(line);
-      el.scrollTop = el.scrollHeight;
-    }
+    evtSource.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
 
-    function showError(msg) {
-      const sec = document.getElementById('error-section');
-      document.getElementById('error-msg').textContent = msg;
-      sec.style.display = 'block';
-    }
-
-    // ── 파이프라인 실행 ────────────────────────────────
-    function runPipeline() {
-      const date = dateInput.value;
-      if (!date) {
-        const err = document.getElementById('date-error');
-        err.textContent = '날짜를 선택하세요.';
-        err.style.display = 'block';
-        return;
+      if (msg.type === 'log') {
+        appendLog(msg.message);
+        if (msg.message.includes('캐시 HIT')) {
+          document.getElementById('cache-badge').style.display = 'inline-block';
+        }
       }
 
-      hideAll();
-      setRunning(true);
-
-      const logSec = document.getElementById('log-section');
-      logSec.style.display = 'block';
-      document.getElementById('log-spinner').style.display = 'block';
-      document.getElementById('log-label').textContent = '파이프라인 실행 중';
-
-      const evtSource = new EventSource(`/api/plan?date=${date}`);
-
-      evtSource.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-
-        if (msg.type === 'log') {
-          appendLog(msg.message);
-          if (msg.message.includes('캐시 HIT')) {
-            document.getElementById('cache-badge').style.display = 'inline-block';
-          }
-        }
-
-        if (msg.type === 'done') {
-          evtSource.close();
-          document.getElementById('log-spinner').style.display = 'none';
-          document.getElementById('log-label').textContent = '완료';
-          appendLog('─────────────────────────────────────');
-          appendLog('✔  리포트 생성 완료');
-
-          document.getElementById('report-section').style.display = 'block';
-          document.getElementById('report-output').innerHTML = marked.parse(msg.markdown);
-          setRunning(false);
-        }
-
-        if (msg.type === 'error') {
-          evtSource.close();
-          document.getElementById('log-spinner').style.display = 'none';
-          showError(msg.message);
-          setRunning(false);
-        }
-      };
-
-      evtSource.onerror = () => {
+      if (msg.type === 'done') {
         evtSource.close();
         document.getElementById('log-spinner').style.display = 'none';
-        showError('서버 연결이 끊겼습니다.');
+        document.getElementById('log-label').textContent = '완료 ✔';
+        appendLog('─'.repeat(40));
+        appendLog('✔ 파이프라인 완료');
+
+        // 도시 이름 추출 (로그에서)
+        const logEl   = document.getElementById('log-output');
+        const logText = logEl.textContent;
+        const cityMatch = logText.match(/추천 도시: (.+?) \(/);
+        const cityName  = cityMatch ? cityMatch[1] : '여행지';
+
+        renderPhotoGrid(msg.city_images || [], cityName);
+
+        document.getElementById('report-section').style.display = 'block';
+        document.getElementById('report-output').innerHTML = marked.parse(msg.markdown || '');
+
+        renderRestaurants(msg.restaurants || []);
+        renderStays(msg.stays || []);
+
         setRunning(false);
-      };
-    }
-  </script>
+      }
+
+      if (msg.type === 'error') {
+        evtSource.close();
+        document.getElementById('log-spinner').style.display = 'none';
+        const sec = document.getElementById('error-section');
+        document.getElementById('error-msg').textContent = msg.message;
+        sec.style.display = 'block';
+        setRunning(false);
+      }
+    };
+
+    evtSource.onerror = () => {
+      evtSource.close();
+      document.getElementById('log-spinner').style.display = 'none';
+      const sec = document.getElementById('error-section');
+      document.getElementById('error-msg').textContent = '서버 연결이 끊겼습니다.';
+      sec.style.display = 'block';
+      setRunning(false);
+    };
+  }
+</script>
 </body>
 </html>
