@@ -25,7 +25,32 @@
 
 > **캐시**: 동일 날짜를 재실행하면 `results/` 파일을 그대로 반환하고 모든 API 호출을 생략한다.
 
-## 설치
+## Docker (권장)
+
+API 키만 넣으면 환경 설치 없이 바로 실행된다.
+
+```bash
+# 1. 키 파일 준비
+cp .env.example .env
+# .env 파일을 열어 세 가지 키 입력
+
+# 2. 빌드 + 실행 (최초 1회)
+docker compose up --build -d
+
+# 3. 브라우저 접속
+http://localhost:8000
+
+# 중지
+docker compose down
+```
+
+생성된 리포트는 호스트의 `./results/` 폴더에 저장되어 컨테이너를 삭제해도 유지된다.
+
+키를 바꾸려면 `.env` 수정 후 `docker compose restart`만 하면 된다.
+
+---
+
+## 로컬 설치
 
 ```bash
 # 1. 가상환경 생성 및 활성화

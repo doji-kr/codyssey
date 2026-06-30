@@ -1,0 +1,10 @@
+services:
+  travel-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env                        # API 키는 여기서만 주입
+    volumes:
+      - ./results:/app/results      # 리포트를 호스트에 영속 저장
+    restart: unless-stopped
