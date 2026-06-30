@@ -22,6 +22,8 @@
         ▼
 [결과: results/{DATE}_raw_data.json + {DATE}_travel_plan.md]
 ```
+![프로젝트구조](assets/result.png)
+
 
 > **캐시**: 동일 날짜를 재실행하면 `results/` 파일을 그대로 반환하고 모든 API 호출을 생략한다.
 
