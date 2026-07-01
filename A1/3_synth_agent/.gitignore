@@ -15,3 +15,4 @@ exports/
 # OS / 에디터
 .DS_Store
 .vscode/
+.vercel

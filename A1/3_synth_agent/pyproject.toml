@@ -1,0 +1,10 @@
+[project]
+name = "synth-agent"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+]
+
+[tool.vercel]
+entrypoint = "api.chat:app"

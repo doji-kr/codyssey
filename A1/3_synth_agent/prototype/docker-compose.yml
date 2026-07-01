@@ -1,8 +1,0 @@
-services:
-  synth-agent:
-    build: .
-    image: synth-agent:latest
-    container_name: synth-agent
-    ports:
-      - "3000:80"    # NAS에서 3000번 포트로 접근: http://NAS_IP:3000
-    restart: unless-stopped
