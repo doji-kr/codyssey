@@ -15,7 +15,23 @@
 
 ---
 
-## 빠른 시작 — 다운로드부터 실행까지
+## 빠른 시작 — Docker로 바로 실행 (권장)
+
+Docker가 설치되어 있다면 클론이나 파이썬 설치 없이 바로 실행할 수 있습니다.
+
+```bash
+# 이미지 다운로드
+docker pull 42doji/prompt-manager
+
+# 실행
+docker run -it 42doji/prompt-manager
+```
+
+> `docker run`은 로컬에 이미지가 없으면 자동으로 pull하므로, 두 번째 줄만 실행해도 됩니다.
+
+---
+
+## 빠른 시작 — 소스에서 직접 실행
 
 ```bash
 # 1. 저장소 복제
@@ -31,6 +47,19 @@ pip install -r requirements.txt
 
 # 4. 실행
 python3 prompt_manager.py
+```
+
+---
+
+## Docker 이미지 직접 빌드 & 배포
+
+```bash
+# 이미지 빌드
+docker build -t 42doji/prompt-manager .
+
+# Docker Hub에 푸시
+docker login
+docker push 42doji/prompt-manager
 ```
 
 ---

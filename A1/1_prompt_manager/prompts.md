@@ -20,7 +20,7 @@ A serene mountain landscape at sunset, watercolor style, soft pastel colors, hig
 
 ---
 
-## 3. 친절한 고객 상담 페르소나 ⭐
+## 3. 친절한 고객 상담 페르소나
 
 - **카테고리**: 페르소나
 
@@ -30,33 +30,13 @@ A serene mountain landscape at sunset, watercolor style, soft pastel colors, hig
 
 ---
 
-## 4. test ⭐
+## 4. test prompt
 
 - **카테고리**: 텍스트 생성
 
 ### 내용
 
-test
-
----
-
-## 5. test2
-
-- **카테고리**: 페르소나
-
-### 내용
-
-test2
-
----
-
-## 6. asdf
-
-- **카테고리**: 자동화
-
-### 내용
-
-asdfljkasdfj
+test blah blah
 
 ---
 
