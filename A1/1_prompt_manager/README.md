@@ -53,13 +53,19 @@ python3 prompt_manager.py
 
 ## Docker 이미지 직접 빌드 & 배포
 
-```bash
-# 이미지 빌드
-docker build -t 42doji/prompt-manager .
+Apple Silicon(arm64) 맥에서 `docker build`만 실행하면 arm64 이미지만 만들어져,
+Intel(amd64) 환경에서 `no matching manifest for linux/amd64` 오류가 발생합니다.
+`buildx`로 두 아키텍처를 함께 빌드해 하나의 매니페스트로 푸시하세요.
 
-# Docker Hub에 푸시
+```bash
+# 로그인
 docker login
-docker push 42doji/prompt-manager
+
+# amd64 + arm64 동시 빌드 후 Docker Hub에 푸시
+docker buildx build --platform linux/amd64,linux/arm64 -t 42doji/prompt-manager:latest --push .
+
+# (참고) 매니페스트에 두 아키텍처가 모두 포함됐는지 확인
+docker manifest inspect 42doji/prompt-manager:latest
 ```
 
 ---
