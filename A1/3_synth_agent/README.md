@@ -5,9 +5,17 @@ Teenage Engineering 장비(EP-133 K.O. II, OP-1 Field, TX-6)를 위한 인터랙
 
 **프로덕션:** https://synth-agent.vercel.app
 
+**데스크톱**
+
 | 홈 화면 | AI 챗봇 |
 |--------|---------|
 | ![홈 화면](docs/screenshot.png) | ![AI 챗봇](docs/screenshot-ai.png) |
+
+**모바일**
+
+| 홈 · 장비 선택 | AI 챗봇 | 마스터리 튜토리얼 |
+|-------------|--------|--------------|
+| ![모바일 홈](docs/screenshot-mobile-home.png) | ![모바일 AI](docs/screenshot-mobile-ai.png) | ![모바일 튜토리얼](docs/screenshot-mobile-tutorial.png) |
 
 ---
 

@@ -188,13 +188,19 @@ def chat():
                         accumulated += delta
 
                         # Check if separator has appeared
-                        sep_pos = accumulated.find("|||META|||")
+                        SEP = "|||META|||"
+                        sep_pos = accumulated.find(SEP)
                         if sep_pos == -1:
-                            # No separator yet — stream new content
-                            new_content = accumulated[content_sent_len:]
+                            # Hold back trailing chars that might be a partial separator
+                            safe_end = len(accumulated)
+                            for i in range(1, len(SEP)):
+                                if accumulated.endswith(SEP[:i]):
+                                    safe_end = len(accumulated) - i
+                                    break
+                            new_content = accumulated[content_sent_len:safe_end]
                             if new_content:
                                 yield f"data: {json.dumps({'type': 'chunk', 'text': new_content})}\n\n"
-                                content_sent_len = len(accumulated)
+                                content_sent_len = safe_end
                         else:
                             # Separator found — stream remaining content before it
                             content_part = accumulated[:sep_pos]
