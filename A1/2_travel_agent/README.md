@@ -50,6 +50,50 @@ docker compose down
 
 키를 바꾸려면 `.env` 수정 후 `docker compose restart`만 하면 된다.
 
+### Docker Hub 이미지 (`42doji/travel-agent`)
+
+빌드된 이미지는 Docker Hub `42doji/travel-agent`에 배포되어 있다. 소스를 받지 않고도 이미지만 받아 바로 실행할 수 있다.
+
+```bash
+# 1. 이미지 받기
+docker pull 42doji/travel-agent:latest
+
+# 2. 키 파일 준비 (results 저장용 폴더도 함께 생성)
+mkdir -p results
+cp .env.example .env   # .env 열어 세 가지 키 입력
+
+# 3. 실행
+docker run -d \
+  --name travel-agent \
+  -p 8000:8000 \
+  --env-file .env \
+  -v "$(pwd)/results:/app/results" \
+  42doji/travel-agent:latest
+
+# 4. 브라우저 접속
+http://localhost:8000
+
+# 상태 확인 / 로그 / 중지
+docker ps
+docker logs -f travel-agent
+docker rm -f travel-agent
+```
+
+#### 이미지 직접 빌드 & 푸시 (배포자용)
+
+코드 수정 후 Docker Hub 이미지를 갱신하려면:
+
+```bash
+# 1. 로그인 (최초 1회)
+docker login
+
+# 2. 빌드
+docker build -t 42doji/travel-agent:latest .
+
+# 3. 푸시
+docker push 42doji/travel-agent:latest
+```
+
 ---
 
 ## 로컬 설치
