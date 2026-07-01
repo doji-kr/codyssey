@@ -2,6 +2,8 @@
 ![프로젝트구조](assets/app.png)
 날짜를 입력하면 실시간 기후 데이터로 최적 여행지를 선별하고, 축제·맛집·숙박 정보를 수집해 LLM이 1일 여행 리포트(Markdown)를 생성하는 CLI 프로그램.
 
+> 학습 목표, 과제 요구사항 대비 구현 검증, 보안 자체 점검은 [docs/explainer.html](docs/explainer.html) 참고.
+
 ## 아키텍처
 
 ```

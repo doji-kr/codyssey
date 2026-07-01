@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국내 여행 추천 CLI — 학습 목표 · 요구사항 검증 · 보안 점검</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f2;
+      --white: #ffffff;
+      --border: #e8e5e1;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --light: #9ca3af;
+      --orange: #f97316;
+      --orange-bg: rgba(249,115,22,0.08);
+      --green: #16a34a;
+      --green-bg: rgba(34,197,94,0.08);
+      --red: #ef4444;
+      --red-bg: rgba(239,68,68,0.07);
+      --code-bg: #1a1714;
+      --code-green: #4ade80;
+      --code-orange: #fb923c;
+      --code-blue: #60a5fa;
+      --code-gray: #9ca3af;
+      --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(245,244,242,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+
+    .nav-brand {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      padding: 14px 20px 14px 0;
+      border-right: 1px solid var(--border);
+      margin-right: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 14px;
+      font-size: 11px;
+      text-decoration: none;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+    nav a:hover { color: var(--text); }
+    nav a .num {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    nav a:hover .num { background: var(--orange); color: white; }
+
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 80px 28px 60px;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--light);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(30px, 4.6vw, 48px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--orange);
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 600px;
+      line-height: 1.7;
+    }
+
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 72px 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .section-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--orange);
+      font-weight: 600;
+    }
+
+    .section h2 {
+      font-size: clamp(22px, 3.2vw, 30px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+
+    .section > p, .section .body p { color: var(--muted); margin-bottom: 14px; font-size: 15px; }
+    .section h3 { font-size: 17px; font-weight: 700; margin: 32px 0 12px; }
+    .section strong { color: var(--text); font-weight: 600; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 28px 0;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .card-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--orange-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card h3 { font-size: 14px; font-weight: 700; margin: 0 0 8px; }
+    .card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 0 8px; }
+    .card code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: var(--bg);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+
+    .code-block {
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+    .code-block pre { font-family: var(--mono); font-size: 13px; line-height: 1.65; color: var(--code-gray); }
+    .code-block .c-comment { color: #4b5563; }
+    .code-block .c-key     { color: var(--code-blue); }
+    .code-block .c-str     { color: var(--code-green); }
+    .code-block .c-val     { color: var(--code-orange); }
+    .code-block .c-fn      { color: #c084fc; }
+
+    .code-label {
+      display: inline-block;
+      font-size: 10px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--light);
+      margin-bottom: 10px;
+    }
+
+    .callout {
+      border-left: 3px solid var(--orange);
+      background: var(--orange-bg);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: #7c3000;
+    }
+    .callout strong { color: #c2410c; }
+
+    .warning {
+      border-left: 3px solid var(--red);
+      background: var(--red-bg);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: #7f1d1d;
+    }
+    .warning strong { color: #b91c1c; }
+
+    .success {
+      border-left: 3px solid var(--green);
+      background: var(--green-bg);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: #14532d;
+    }
+    .success strong { color: #15803d; }
+
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 13.5px; }
+    th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--light);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 11px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    td code {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--orange);
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge-pass { background: var(--green-bg); color: #15803d; }
+    .badge-adapt { background: var(--orange-bg); color: #c2410c; }
+    .badge-fail { background: var(--red-bg); color: #b91c1c; }
+
+    /* ── Flow diagram (dark dataflow panel) ── */
+    .flow-panel {
+      background: #100e0b;
+      border: 1px solid #2a2620;
+      border-radius: var(--radius);
+      padding: 28px 24px 8px;
+      margin: 28px 0;
+      font-family: var(--mono);
+      color: #d4d0c8;
+      overflow-x: auto;
+    }
+
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #2a2620;
+      margin-bottom: 8px;
+    }
+
+    .flow-kicker {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #6b6a63;
+      margin-bottom: 10px;
+    }
+
+    .flow-header h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f5f3ee;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .flow-header h3 .arrow { color: #6b6a63; font-weight: 400; }
+
+    .flow-stats {
+      text-align: right;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: #6b6a63;
+      line-height: 1.9;
+    }
+    .flow-stats b { color: #f5f3ee; font-weight: 700; }
+
+    .flow-active {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #2a2620;
+      margin-bottom: 32px;
+      color: #8a887f;
+    }
+    .flow-active .tri { color: #f5f3ee; }
+    .flow-active .stage-tag { color: #6b6a63; letter-spacing: 0.1em; }
+    .flow-active .stage-num { color: #f5f3ee; font-weight: 700; }
+    .flow-active .stage-name { color: #f5f3ee; font-weight: 700; letter-spacing: 0.03em; }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(64px, 1fr));
+      grid-auto-rows: min-content;
+      row-gap: 0;
+      padding-bottom: 24px;
+    }
+
+    .flow-circle-row { display: contents; }
+
+    .flow-circle {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 1px solid #3a362d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #d4d0c8;
+      justify-self: center;
+      background: #100e0b;
+      position: relative;
+      z-index: 2;
+    }
+
+    .flow-hline {
+      align-self: center;
+      justify-self: stretch;
+      height: 0;
+      border-top: 2px dotted #3a362d;
+      margin: 0 -6px;
+    }
+
+    .flow-vline-cell {
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .flow-vline {
+      width: 0;
+      height: 100%;
+      border-left: 2px dotted #3a362d;
+    }
+
+    .flow-label {
+      text-align: center;
+      padding: 10px 4px 28px;
+    }
+    .flow-label .n {
+      font-size: 10px;
+      color: #6b6a63;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .flow-label .t {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #f5f3ee;
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+    .flow-label .d {
+      font-size: 10.5px;
+      color: #7a786f;
+      line-height: 1.5;
+    }
+
+    .flow-steps {
+      margin: 28px 0;
+    }
+    .flow-step-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .flow-step-row:last-child { border-bottom: none; }
+    .flow-step-num {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--light);
+    }
+    .flow-step-body h4 {
+      font-size: 14.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .flow-step-body h4 .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--orange);
+      background: var(--orange-bg);
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .flow-step-body p { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+    @media (max-width: 700px) {
+      .flow-grid { grid-template-columns: repeat(7, minmax(44px, 1fr)); }
+      .flow-circle { width: 44px; height: 44px; font-size: 15px; }
+      .flow-label .t { font-size: 10.5px; white-space: normal; }
+      .flow-label .d { display: none; }
+    }
+
+    .section-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--light);
+      margin: 40px 0 4px;
+      font-weight: 700;
+    }
+
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    footer p { font-size: 12px; color: var(--light); }
+    footer a { color: var(--orange); text-decoration: none; font-size: 12px; }
+
+    @media (max-width: 640px) {
+      nav a span:not(.num) { display: none; }
+      table { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Travel Planner</span>
+  <a href="#s1"><span class="num">1</span> <span>파이프라인 흐름</span></a>
+  <a href="#s2"><span class="num">2</span> <span>학습 목표(Study)</span></a>
+  <a href="#s3"><span class="num">3</span> <span>요구사항 체크리스트</span></a>
+  <a href="#s4"><span class="num">4</span> <span>보안 자체 점검</span></a>
+</nav>
+
+<div class="hero">
+  <p class="hero-label">Travel Planner CLI · 학습 목표 & 검증 리포트</p>
+  <h1>날짜 하나로<br><em>여행 리포트</em>가 나오기까지</h1>
+  <p>Open-Meteo(날씨) → TourAPI(축제·숙박) → Kakao Local(맛집) → OpenRouter LLM(리포트) 순서로 실데이터를 엮는 파이프라인을 만들며 확인한 학습 목표, 과제 요구사항 대비 실제 구현 검증 결과, 그리고 개발 중 실제로 겪은 보안 점검 사례를 정리합니다.</p>
+</div>
+
+<!-- ══════════════════ Section 0 : Pipeline Flow ══════════════════ -->
+<section class="section" id="s1">
+  <div class="section-meta">
+    <div class="section-num">1</div>
+    <span class="section-tag">Pipeline Flow</span>
+  </div>
+  <h2>날짜 하나가<br>리포트가 되기까지, 12단계</h2>
+  <p>실제 코드 실행 순서를 그대로 다이어그램으로 옮겼다. <strong>가로</strong>는 순차 실행, <strong>세로 점선</strong>은 도시가 확정된 뒤 4개 외부 API를 이어서 훑는 구간이다.</p>
+
+  <div class="flow-panel">
+    <div class="flow-header">
+      <div>
+        <span class="flow-kicker">Travel Planner · Dataflow</span>
+        <h3>--date <span class="arrow">→</span> travel_plan.md</h3>
+      </div>
+      <div class="flow-stats">
+        <div><b>12</b> STEPS</div>
+        <div><b>4</b> EXTERNAL APIS</div>
+        <div><b>0</b> HALLUCINATED FACTS</div>
+      </div>
+    </div>
+
+    <div class="flow-active">
+      <span class="tri">▶</span>
+      <span class="stage-tag">FAN-OUT</span>
+      <span class="stage-num">05 – 08</span>
+      <span class="stage-name">FESTIVAL / STAY / RESTAURANT / IMAGE</span>
+      <span>— 도시가 정해진 뒤 TourAPI·Kakao 4개 엔드포인트를 순서대로 조회</span>
+    </div>
+
+    <div class="flow-grid">
+      <!-- Row 1 circles: 01 → 02 → 03 → 04 -->
+      <div class="flow-circle">⌨</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">♻</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">☁</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">◎</div>
+
+      <!-- Row 1 labels -->
+      <div class="flow-label"><div class="n">01</div><div class="t">INPUT</div><div class="d">--date 형식·범위 검증</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">02</div><div class="t">CACHE</div><div class="d">동일 날짜 결과 존재 확인</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">03</div><div class="t">WEATHER</div><div class="d">11개 도시 기후 평년값 조회</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">04</div><div class="t">SCORE</div><div class="d">쾌적도 최고 도시 확정</div></div>
+
+      <!-- vertical connector under col 7 -->
+      <div></div><div></div><div></div><div></div><div></div><div></div>
+      <div class="flow-vline-cell"><div class="flow-vline"></div></div>
+
+      <!-- Row 2 circles (visual L→R = 08,07,06,05) -->
+      <div class="flow-circle">▧</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">◈</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">⌂</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">⛩</div>
+
+      <!-- Row 2 labels -->
+      <div class="flow-label"><div class="n">08</div><div class="t">IMAGE</div><div class="d">도시·맛집 이미지 검색</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">07</div><div class="t">RESTAURANT</div><div class="d">맛집 10곳 키워드 검색</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">06</div><div class="t">STAY</div><div class="d">지역 숙박 정보 조회</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">05</div><div class="t">FESTIVAL</div><div class="d">지역 축제·행사 조회</div></div>
+
+      <!-- vertical connector under col 1 -->
+      <div class="flow-vline-cell"><div class="flow-vline"></div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div>
+
+      <!-- Row 3 circles: 09 → 10 → 11 → 12 -->
+      <div class="flow-circle">⊕</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">✦</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">↻</div>
+      <div class="flow-hline"></div>
+      <div class="flow-circle">⬇</div>
+
+      <!-- Row 3 labels -->
+      <div class="flow-label"><div class="n">09</div><div class="t">AGGREGATE</div><div class="d">raw_data JSON으로 취합</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">10</div><div class="t">LLM REPORT</div><div class="d">실데이터로 마크다운 생성</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">11</div><div class="t">RETRY</div><div class="d">실패 시 1회 재시도·폴백</div></div>
+      <div></div>
+      <div class="flow-label"><div class="n">12</div><div class="t">SAVE</div><div class="d">json·md 파일 저장</div></div>
+    </div>
+  </div>
+
+  <div class="flow-steps">
+    <div class="flow-step-row">
+      <div class="flow-step-num">01</div>
+      <div class="flow-step-body">
+        <h4>INPUT <span class="tag">travel_planner.py</span></h4>
+        <p><code>argparse</code>로 <code>--date</code>를 받아 <code>validate_date()</code>가 형식(<code>YYYY-MM-DD</code>)과 범위(내일 이후 ~ 1년 이내)를 검증한다. 실패하면 <code>ArgumentTypeError</code>를 던져 argparse가 usage를 출력하고 종료 코드 2로 종료한다.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">02</div>
+      <div class="flow-step-body">
+        <h4>CACHE <span class="tag">_load_cache()</span></h4>
+        <p>같은 날짜의 <code>{date}_raw_data.json</code>과 <code>{date}_travel_plan.md</code>가 이미 있으면 외부 API 호출을 전부 건너뛰고 즉시 반환한다. 심화 과제로 요구된 멱등성(idempotency) 로직.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">03</div>
+      <div class="flow-step-body">
+        <h4>WEATHER <span class="tag">weather.py</span></h4>
+        <p>후보 도시 11곳 각각에 대해 Open-Meteo Climate API를 호출한다. 대상 날짜의 (월·일) 기준 ±3일 구간을 2000년 기후 모델(<code>MRI_AGCM3_2_S</code>)로 조회해 평균기온·습도 평년값을 얻는다 — 미래 날짜라도 실측 기반 값을 쓰기 위한 설계.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">04</div>
+      <div class="flow-step-body">
+        <h4>SCORE <span class="tag">_comfort_score()</span></h4>
+        <p>기온 18~24°C·습도 40~60%에 가까울수록 높은 점수를 주는 결정론적 함수로 11개 도시를 채점하고 최고점 도시를 선정한다. <strong>LLM이 아니라 순수 Python 계산</strong>이라 같은 입력이면 항상 같은 결과가 나온다(재현 가능).</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">05</div>
+      <div class="flow-step-body">
+        <h4>FESTIVAL <span class="tag">tour.py: fetch_festivals()</span></h4>
+        <p>확정된 <code>area_code</code>로 TourAPI <code>searchFestival2</code>를 호출해 당월 축제를 받고, 대상 날짜가 <code>eventstartdate</code>~<code>eventenddate</code> 사이에 포함되는 것만 필터링한다. 0건이어도 빈 배열로 정상 진행.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">06</div>
+      <div class="flow-step-body">
+        <h4>STAY <span class="tag">tour.py: fetch_stays()</span></h4>
+        <p>같은 <code>area_code</code>로 TourAPI <code>searchStay2</code>를 호출한다. 축제 조회와 <strong>동일한 <code>_call_tour_api()</code> 범용 함수를 재사용</strong>해 엔드포인트 이름만 바꿔 한 줄로 추가한 심화 과제 구현.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">07</div>
+      <div class="flow-step-body">
+        <h4>RESTAURANT <span class="tag">places.py: fetch_restaurants()</span></h4>
+        <p>Kakao Local 키워드 검색에 <code>"{도시명} 맛집"</code>과 <code>category_group_code=FD6</code>(음식점)을 함께 보내 10곳을 받는다. 401/403은 <code>AUTH_ERROR</code>로 기록 후 빈 배열 반환.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">08</div>
+      <div class="flow-step-body">
+        <h4>IMAGE <span class="tag">places.py: fetch_city_images() / _fetch_one_image()</span></h4>
+        <p>Kakao Image Search로 도시 대표 이미지 6장과, 맛집별 이미지를 <code>ThreadPoolExecutor(max_workers=5)</code>로 병렬 조회한다. 이 단계에서 4개 API 순회(Fan-out)가 마무리된다.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">09</div>
+      <div class="flow-step-body">
+        <h4>AGGREGATE <span class="tag">travel_planner.py: run()</span></h4>
+        <p>지금까지 모은 <code>city</code>·<code>festivals</code>·<code>restaurants</code>·<code>stays</code>·<code>errors</code>를 하나의 <code>raw_data</code> 딕셔너리로 합친다. 이 시점부터 LLM 프롬프트의 입력이 확정된다.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">10</div>
+      <div class="flow-step-body">
+        <h4>LLM REPORT <span class="tag">llm.py: generate_report()</span></h4>
+        <p>OpenRouter(<code>google/gemini-2.5-flash</code>)에 <code>raw_data</code> 전체를 JSON 텍스트로 박아넣고 "데이터에 없는 정보는 지어내지 말 것"을 명시한 프롬프트로 마크다운 리포트를 생성한다.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">11</div>
+      <div class="flow-step-body">
+        <h4>RETRY <span class="tag">llm.py: _call_llm() / _fallback_report()</span></h4>
+        <p>LLM 호출이 실패하면 "반드시 순수한 마크다운만 반환하라"는 문구를 덧붙여 1회 재시도한다. 그래도 실패하면 <code>_fallback_report()</code>가 최소한의 마크다운 뼈대를 대신 만든다.</p>
+      </div>
+    </div>
+    <div class="flow-step-row">
+      <div class="flow-step-num">12</div>
+      <div class="flow-step-body">
+        <h4>SAVE <span class="tag">report.py: save()</span></h4>
+        <p><code>results/</code> 폴더를 생성(이미 있으면 재사용)하고 <code>{date}_raw_data.json</code>과 <code>{date}_travel_plan.md</code>를 저장한다. 이 두 파일이 다음 실행의 캐시(2단계)로 재사용된다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ Section 1 : Study ══════════════════ -->
+<section class="section" id="s2">
+  <div class="section-meta">
+    <div class="section-num">2</div>
+    <span class="section-tag">Study — 학습 목표</span>
+  </div>
+  <h2>이 과제를 마친 후<br>스스로 설명할 수 있어야 하는 것</h2>
+  <p>아래 네 가지는 과제 가이드가 요구하는 핵심 역량이다. 각 항목마다 <strong>이 프로젝트에서 실제로 어떤 코드가 그 개념을 구현했는지</strong>를 근거로 든다.</p>
+
+  <h3>① REST API 요청/응답 구조와 GET/POST의 차이</h3>
+  <p>이 프로젝트가 호출하는 4개의 외부 API는 전부 <strong>GET</strong>이고, 유일하게 OpenRouter LLM 호출만 <strong>POST</strong>다. 이유는 단순한 규칙이 아니라 각 호출의 성격에서 나온다 — <strong>조회(읽기, 멱등)</strong>는 GET, <strong>생성(부수효과, 비멱등)</strong>은 POST.</p>
+
+  <table>
+    <tr><th>API</th><th>메서드</th><th>인증 방식</th><th>이유</th></tr>
+    <tr><td>Open-Meteo Climate</td><td><code>GET</code></td><td>없음 (공개 API)</td><td>위경도·날짜로 평년값을 "조회"만 함 — 부수효과 없음</td></tr>
+    <tr><td>TourAPI (축제·숙박)</td><td><code>GET</code></td><td>Query <code>serviceKey</code></td><td>지역코드 기준 목록 조회. 같은 요청을 반복해도 결과 동일(멱등)</td></tr>
+    <tr><td>Kakao Local / Image</td><td><code>GET</code></td><td>Header <code>Authorization: KakaoAK {key}</code></td><td>키워드 검색 결과 조회 — Authorization은 헤더로, 검색어는 쿼리 파라미터로 분리</td></tr>
+    <tr><td>OpenRouter Chat Completions</td><td><code>POST</code></td><td>Header <code>Authorization: Bearer {key}</code></td><td>매 호출마다 <strong>새로운 리포트를 생성</strong>하는 비멱등 동작 + JSON 바디로 프롬프트 전달 필요</td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>흥미로운 사례:</strong> 이 프로젝트의 웹 서버(<code>server.py</code>)는 파이프라인을 "실행"시키는 <code>/api/plan</code>도 GET으로 만들었다. 일반적으로 실행/생성 트리거는 POST가 어울리지만, 브라우저의 <code>EventSource</code>(SSE 수신 API)는 GET 요청만 지원하기 때문에 실시간 로그 스트리밍이라는 요구사항이 메서드 선택을 결정했다. REST 원칙과 실제 브라우저 API 제약이 충돌할 때 어떤 판단을 하는지 보여주는 예시.
+  </div>
+
+  <h3>② LLM 출력의 구조화(JSON)와 파이프라인 연동</h3>
+  <p>과제 원안은 "1차 LLM 호출이 <code>{recommended_city, weather, events, reason}</code> JSON을 생성하고, 이를 2차 지도 API 입력으로 쓴다"는 흐름이다. 이 프로젝트는 <strong>이 구조를 의도적으로 바꿨다</strong> — 도시 선정을 LLM이 아니라 Open-Meteo 실측 데이터 기반 결정론적 점수 계산(<code>weather.py: select_best_city()</code>)으로 대체했다.</p>
+
+  <span class="code-label">weather.py — LLM 대신 결정론적 로직이 만드는 구조화 JSON</span>
+  <div class="code-block"><pre>
+<span class="c-comment"># select_best_city()가 반환하는 구조 — 원래 스펙의 1차 JSON과 같은 "역할"을 한다</span>
+{
+  <span class="c-str">"recommended_city"</span>: <span class="c-str">"속초"</span>,
+  <span class="c-str">"area_code"</span>: <span class="c-val">32</span>,
+  <span class="c-str">"weather"</span>: {<span class="c-str">"avg_temp_c"</span>: <span class="c-val">24.2</span>, <span class="c-str">"humidity_pct"</span>: <span class="c-val">80.4</span>, <span class="c-str">"source"</span>: <span class="c-str">"open-meteo-climate"</span>},
+  <span class="c-str">"score"</span>: <span class="c-val">0.568</span>
+}
+<span class="c-comment"># ↓ 이 JSON의 area_code는 TourAPI 호출 파라미터로,
+#   recommended_city는 Kakao Local 검색어로 그대로 흘러들어간다</span>
+</pre></div>
+
+  <p>왜 바꿨는가? 프로젝트 <code>CLAUDE.md</code>에 명시된 설계 철학 때문이다 — <strong>"LLM은 데이터를 지어내지 않는다."</strong> LLM에게 "7월에 강릉 날씨가 어떤지" 물으면 그럴듯하지만 검증 불가능한 문장을 만들어낼 수 있다. 반면 Open-Meteo는 실제 기후 관측값을 준다. 그래서 이 프로젝트는 <strong>구조화 데이터 핸드오프</strong>라는 학습 목표는 그대로 유지하면서, 그 구조화 데이터를 만드는 주체만 "LLM"에서 "결정론적 Python 코드"로 옮겼다.</p>
+
+  <p>대신 LLM은 파이프라인의 <strong>마지막 단계</strong>에서 정반대 방향의 변환을 담당한다 — 날씨·축제·맛집·숙박이라는 <strong>구조화된 JSON 전체를 입력</strong>으로 받아, 사람이 읽는 <strong>비구조화 마크다운 텍스트</strong>로 바꾼다(<code>llm.py: generate_report()</code>). 구조화 입력→출력과 비구조화 입력→출력을 한 파이프라인 안에서 모두 경험하는 구조다.</p>
+
+  <h3>③ 외부 API 오류(인증/쿼터/네트워크/파싱)와 대응 원칙</h3>
+  <p>각 모듈은 실패 유형별로 다른 처리를 한다. 핵심 원칙은 하나 — <strong>부분 실패가 전체 파이프라인을 죽이지 않는다.</strong> 실패는 예외를 삼키고 <code>errors[]</code> 리스트에 기록한 뒤 빈 결과로 다음 단계를 계속 진행한다.</p>
+
+  <table>
+    <tr><th>오류 유형</th><th>발생 지점</th><th>대응</th></tr>
+    <tr><td>인증 실패 (401/403)</td><td><code>places.py:76-81</code></td><td><code>AUTH_ERROR</code> 기록 후 빈 리스트 반환 → 리포트에는 "데이터 없음"</td></tr>
+    <tr><td>키 누락</td><td><code>tour.py:11-14</code>, <code>llm.py:71-74</code></td><td><code>KEY_MISSING</code> 기록 후 해당 단계 바이패스</td></tr>
+    <tr><td>타임아웃</td><td><code>weather.py:80-82</code>, <code>places.py:109-110</code></td><td><code>TIMEOUT</code> 기록, 해당 도시/검색만 스킵</td></tr>
+    <tr><td>LLM 호출 실패</td><td><code>llm.py:78-89</code></td><td>1회 재시도 후에도 실패하면 <code>_fallback_report()</code>로 최소 마크다운 반환</td></tr>
+    <tr><td>검색 결과 0건</td><td><code>tour.py</code>, <code>places.py</code></td><td>정상 흐름 — 빈 배열 반환, 에러 아님</td></tr>
+  </table>
+
+  <h3>④ API 키를 .env로 관리하는 이유</h3>
+  <p>이유를 교과서적으로 설명하면 "하드코딩하면 Git에 올라가서 유출된다"이다. 이 프로젝트를 개발하던 중 <strong>그 위험이 이론이 아니라는 걸 실제로 확인</strong>한 사건이 있었다 — 자세한 내용은 <a href="#s4">4장 보안 자체 점검</a>에 정리했다. 요약하면: 같은 저장소의 다른 프로젝트 문서(예시 코드)에 실제 키와 같은 접두사를 가진 문자열이 커밋되어 GitHub에 이미 푸시되어 있었고, 이를 <code>git filter-repo</code>로 히스토리에서 제거하고 강제 푸시해야 했다. "예시로만 써도 진짜 키와 헷갈릴 만한 문자열은 절대 커밋하면 안 된다"는 교훈을 이 프로젝트가 직접 얻었다.</p>
+</section>
+
+<!-- ══════════════════ Section 2 : Compliance Checklist ══════════════════ -->
+<section class="section" id="s3">
+  <div class="section-meta">
+    <div class="section-num">3</div>
+    <span class="section-tag">Compliance Check</span>
+  </div>
+  <h2>요구사항 대비 실제 구현<br>검증 결과</h2>
+  <p>과제 요구사항 문서를 항목별로 코드와 대조했다. <span class="badge badge-pass">충족</span>은 요구사항 그대로 구현, <span class="badge badge-adapt">변형 충족</span>은 설계 의도에 따라 다른 방식으로 같은 목적을 달성, <span class="badge badge-fail">미충족</span>은 명시된 요구사항이 실제로 구현되지 않은 경우다.</p>
+
+  <div class="section-sub">CLI 기반 Python 프로그램</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>필수 옵션 <code>--date "YYYY-MM-DD"</code></td><td><span class="badge badge-pass">충족</span></td><td><code>travel_planner.py:144-150</code> — <code>argparse</code>, <code>required=True</code></td></tr>
+    <tr><td>진행 로그 + 결과 저장 경로 안내</td><td><span class="badge badge-pass">충족</span></td><td><code>travel_planner.py:83-132</code> 단계별 <code>log()</code> 호출 + 최종 경로 출력</td></tr>
+    <tr><td>날짜 형식 오류 시 사용법 출력 후 종료</td><td><span class="badge badge-pass">충족</span></td><td><code>validate_date()</code>가 <code>ArgumentTypeError</code>를 던지면 <code>argparse</code>가 usage 출력 후 <code>exit(2)</code></td></tr>
+  </table>
+
+  <div class="section-sub">실행 결과 데이터 (results/)</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>원본 JSON 1개 이상 (1차 추천 + 맛집 결과 포함)</td><td><span class="badge badge-pass">충족</span></td><td><code>report.py:save()</code> → <code>{date}_raw_data.json</code>에 <code>city</code>·<code>restaurants</code>·<code>festivals</code>·<code>stays</code>·<code>errors</code> 포함</td></tr>
+    <tr><td>최종 여행 리포트 Markdown 1개</td><td><span class="badge badge-pass">충족</span></td><td><code>{date}_travel_plan.md</code></td></tr>
+  </table>
+
+  <div class="section-sub">README.md</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>개요 · 실행 방법 · API 키 설정 · 결과물 확인 방법</td><td><span class="badge badge-pass">충족</span></td><td><code>README.md</code> 전체 구성</td></tr>
+    <tr><td>API 키 유출 주의 사항</td><td><span class="badge badge-pass">충족</span></td><td><code>README.md</code> "보안 가이드" 절 — 서비스별 유출 위협 시나리오 명시</td></tr>
+  </table>
+
+  <div class="section-sub">API 제공자 선택</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>LLM: OpenAI 또는 Gemini 계열 중 택1</td><td><span class="badge badge-adapt">변형 충족</span></td><td>OpenRouter(<code>llm.py</code>)를 통해 <code>google/gemini-2.5-flash</code> 호출 — Gemini 계열 모델을 사용하되 공식 SDK 대신 통합 REST 게이트웨이 경유</td></tr>
+    <tr><td>지도/장소: Kakao Local 또는 Naver 중 택1</td><td><span class="badge badge-pass">충족</span></td><td>Kakao Local 키워드 검색 채택 (<code>places.py</code>)</td></tr>
+    <tr><td>공통 조건: JSON 응답 + 최소 필드(place_name/address/x,y/url)</td><td><span class="badge badge-pass">충족</span></td><td><code>places.py:86-97</code> — <code>name/address/category/url/x/y/image_url</code> 반환 (요구 필드 모두 포함 + 이미지 확장)</td></tr>
+  </table>
+
+  <div class="section-sub">LLM 연동 — 1차(날씨/행사) 및 맛집 검색</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>1차 JSON 스키마 <code>{recommended_city, weather, events, reason}</code>을 LLM이 생성</td><td><span class="badge badge-adapt">변형 충족</span></td><td><strong>의도적 설계 변경.</strong> <code>weather.py: select_best_city()</code>가 결정론적으로 동일 역할의 JSON 생성 (<code>recommended_city/area_code/weather/score</code>). 근거: 프로젝트 <code>CLAUDE.md</code> "LLM은 데이터를 지어내지 않는다" 원칙</td></tr>
+    <tr><td>맛집 N곳(권장 5) 검색, 0건이어도 중단 없이 진행</td><td><span class="badge badge-pass">충족</span></td><td><code>places.py</code> — 10곳 반환(요구 이상), 예외 시 빈 리스트로 정상 진행</td></tr>
+    <tr><td>Kakao 401/403 → 키/권한 점검 안내</td><td><span class="badge badge-pass">충족</span></td><td><code>places.py:76-81</code> 상태코드별 <code>AUTH_ERROR</code> 메시지 기록</td></tr>
+  </table>
+
+  <div class="section-sub">LLM 연동 — 최종 리포트</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>추천 지역+이유, 날씨, 행사, 맛집(0건 시 "데이터 없음"), 오전/오후/저녁 일정 포함</td><td><span class="badge badge-pass">충족</span></td><td><code>llm.py: _build_prompt()</code> 프롬프트 규칙에 전항목 명시, 실제 산출물(<code>results/*.md</code>)로 확인</td></tr>
+  </table>
+
+  <div class="section-sub">에러 처리</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>API 키 미설정 시 <strong>즉시 종료</strong> + 설정 안내</td><td><span class="badge badge-fail">미충족</span></td><td>실제로는 <code>sys.exit()</code> 없이 각 모듈이 <code>KEY_MISSING</code>을 <code>errors[]</code>에 기록하고 해당 단계만 건너뛴 채 계속 진행함(<code>tour.py:11-14</code>, <code>places.py:58-61</code>, <code>llm.py:71-74</code>). 데모 견고성 측면에서는 더 낫지만, 스펙 문구("즉시 종료")와는 다르게 구현됨</td></tr>
+    <tr><td>지도 API 실패 시 맛집 "데이터 없음" 처리 후 진행</td><td><span class="badge badge-pass">충족</span></td><td>위와 동일 파일 — 예외/오류 시 빈 배열 반환</td></tr>
+    <tr><td>LLM JSON 파싱 실패 시 프롬프트 보정 후 1회 재시도</td><td><span class="badge badge-adapt">변형 충족</span></td><td>최종 산출물이 JSON이 아닌 마크다운이라 "파싱" 자체가 없음. 대신 <strong>HTTP 호출 실패</strong> 시 1회 재시도(<code>llm.py:78-89</code>)로 동일한 견고성 원칙을 적용</td></tr>
+    <tr><td>내부 오류 목록(<code>errors[]</code>) 관리, 결과 JSON에 포함</td><td><span class="badge badge-pass">충족</span></td><td><code>raw_data["errors"]</code>, 빈 리스트도 정상 (<code>travel_planner.py:69,114,120</code>)</td></tr>
+  </table>
+
+  <div class="section-sub">API 키 관리(보안) · 결과 저장</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>키 하드코딩 금지, <code>.env</code>/환경변수로 관리</td><td><span class="badge badge-pass">충족</span></td><td>전체 <code>*.py</code> <code>grep</code> 결과 하드코딩 없음(3장 참고), 전부 <code>os.getenv()</code></td></tr>
+    <tr><td>제출물에 키 노출 방지</td><td><span class="badge badge-pass">충족</span></td><td><code>.gitignore</code>·<code>.dockerignore</code> 모두 <code>.env</code> 제외, <code>git ls-files</code>로 미추적 확인</td></tr>
+    <tr><td><code>results/</code> 폴더 자동 생성, 날짜 기준 JSON+MD 저장</td><td><span class="badge badge-pass">충족</span></td><td><code>report.py: save()</code></td></tr>
+  </table>
+
+  <div class="section-sub">심화 과제 (Bonus)</div>
+  <table>
+    <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
+    <tr><td>숙박 추천 (TourAPI searchStay, 동일 키 재사용)</td><td><span class="badge badge-pass">충족</span></td><td><code>tour.py: fetch_stays()</code> — <code>_call_tour_api()</code> 범용 함수 재사용으로 한 줄 추가</td></tr>
+    <tr><td>로컬 캐싱 (동일 날짜 재실행 시 API 생략)</td><td><span class="badge badge-pass">충족</span></td><td><code>travel_planner.py: _load_cache()</code> — JSON+MD 둘 다 있으면 API 호출 없이 즉시 반환</td></tr>
+    <tr><td>복수 도시 추천 Fan-out</td><td><span class="badge badge-fail">미구현</span></td><td>현재는 11개 후보 중 최고 점수 <strong>1개 도시만</strong> 선정 (<code>weather.py: select_best_city()</code>)</td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>종합 판단:</strong> 필수 요구사항은 대부분 충족하거나, 문서화된 설계 근거를 가지고 더 견고한 방식으로 변형 충족했다. 유일한 명확한 미충족 항목은 <strong>"키 미설정 시 즉시 종료"</strong>다 — 필요하다면 각 모듈 진입 전에 <code>if not os.getenv(...): sys.exit(...)</code> 가드를 추가해 스펙 문구를 그대로 맞출 수 있다.
+  </div>
+</section>
+
+<!-- ══════════════════ Section 3 : Security Self-Review ══════════════════ -->
+<section class="section" id="s4">
+  <div class="section-meta">
+    <div class="section-num">4</div>
+    <span class="section-tag">Security Self-Review</span>
+  </div>
+  <h2>보안 자체 점검</h2>
+  <p>정적 점검 결과와, 개발 중 실제로 발생한 키 노출 의심 사례 대응 기록이다.</p>
+
+  <h3>정적 점검 결과</h3>
+  <table>
+    <tr><th>점검 항목</th><th>명령</th><th>결과</th></tr>
+    <tr><td>소스코드 내 키 하드코딩</td><td><code>grep -rnE "sk-or-v1-...|KakaoAK ..." *.py</code></td><td><span class="badge badge-pass">CLEAN</span> 매치 없음</td></tr>
+    <tr><td><code>.env</code> Git 추적 여부</td><td><code>git ls-files | grep '^\.env$'</code></td><td><span class="badge badge-pass">CLEAN</span> 추적되지 않음</td></tr>
+    <tr><td><code>.gitignore</code> / <code>.dockerignore</code>에 <code>.env</code> 포함</td><td>파일 직접 확인</td><td><span class="badge badge-pass">CLEAN</span> 둘 다 포함</td></tr>
+    <tr><td><code>results/*.json</code> 내 키 유출</td><td><code>grep -rlE "sk-or-v1-..." results/</code></td><td><span class="badge badge-pass">CLEAN</span> 매치 없음 (해당 파일들은 <code>.gitignore</code>로 커밋 대상에서도 제외)</td></tr>
+  </table>
+
+  <h3>실제 사례: 키 노출 의심 → 대응 → 오탐(false positive) 확인</h3>
+  <p>이 프로젝트를 Docker로 빌드·배포하는 과정에서 실제 OpenRouter 키를 <code>.env</code>에 넣어 테스트했다. 이후 같은 Git 저장소의 <strong>다른 프로젝트 문서</strong>(보안 교육용 예시 코드가 담긴 explainer 페이지)를 점검하던 중, 방금 사용한 키와 <strong>동일한 접두사 문자열이 이미 커밋되어 GitHub에 푸시된 상태</strong>임을 발견했다.</p>
+
+  <div class="warning">
+    <strong>1단계 — 발견:</strong> <code>git log --all -S "&lt;key-prefix&gt;"</code>로 히스토리 전체를 검색해, 예시 코드("이렇게 하면 안 됩니다")로 작성된 문서에 실제 키와 같은 접두사가 남아있고 이미 원격에 푸시되었음을 확인.
+  </div>
+  <div class="callout">
+    <strong>2단계 — 즉시 대응:</strong> 사용자에게 즉시 보고하고, (a) 키 폐기, (b) 예시 문자열만 수정, (c) 예시 문자열 수정 + Git 히스토리에서 완전 제거 중 선택지를 물었다. 사용자는 (c)를 선택 → <code>git filter-repo --replace-text</code>로 전체 히스토리에서 문자열을 치환하고 <code>git push --force</code>로 원격 저장소를 갱신했다.
+  </div>
+  <div class="success">
+    <strong>3단계 — 최종 확인:</strong> 이후 사용자가 해당 문자열이 실제로는 예시용 가짜 키였음을 확인해줬다 — 즉 이번 건은 오탐(false positive)이었다. 다만 <strong>판별 이전 단계에서 잠재적 유출로 간주하고 즉시 조치한 판단 자체는 유지</strong>한다: 실제 키인지 예시 키인지 텍스트만으로 100% 확신할 수 없는 상황에서는, 확인 전까지 "유출로 간주하고 대응"하는 것이 안전한 기본값이다.
+  </div>
+
+  <span class="code-label">실행한 대응 명령 요약</span>
+  <div class="code-block"><pre>
+<span class="c-comment"># 1. 노출 의심 문자열이 히스토리 어느 커밋에 있는지 특정</span>
+git log --all -S <span class="c-str">"&lt;key-prefix&gt;"</span> --source --oneline
+
+<span class="c-comment"># 2. 해당 문자열을 전체 히스토리에서 치환 (replacements.txt: old==&gt;new)</span>
+git filter-repo --replace-text replacements.txt --force
+
+<span class="c-comment"># 3. 치환 후 히스토리에 남아있지 않은지 재검증</span>
+git rev-list --all | xargs -I{} git grep -l <span class="c-str">"&lt;key-prefix&gt;"</span> {}
+
+<span class="c-comment"># 4. 원격 갱신 (filter-repo가 안전장치로 제거한 origin 재등록 후 강제 푸시)</span>
+git remote add origin &lt;repo-url&gt;
+git push --force origin main
+</pre></div>
+
+  <h3>교훈</h3>
+  <p>이 사례는 <strong>"학습 목표 ④ API 키를 .env로 관리하는 이유"</strong>를 이론이 아니라 실제로 겪은 문제로 만들어줬다. 두 가지를 배웠다:</p>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🚫</div>
+      <h3>예시 코드도 예외 없음</h3>
+      <p>"이렇게 하면 안 됩니다"라는 교육용 예시라도, 실제 키와 헷갈릴 수 있는 문자열(같은 접두사, 같은 길이감)은 커밋하지 않는다. 완전한 더미 값(<code>sk-or-v1-xxxxxxxx</code>)만 사용한다.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>의심되면 즉시 폐기가 기본값</h3>
+      <p>노출 여부가 불확실할 때 "확실해질 때까지 기다리기"보다 "일단 폐기하고 재발급"이 비용이 훨씬 싸다. API 키 재발급은 몇 초, 무단 사용으로 인한 과금은 되돌릴 수 없다.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>국내 여행 추천 CLI · 학습 목표 & 검증 리포트</p>
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
+    <a href="../README.md">→ README</a>
+  </div>
+</footer>
+
+</body>
+</html>
