@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synth Agent</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <span class="logo">synth agent</span>
+    <div class="device-selector">
+      <select id="device-select">
+        <option value="ep-133">EP-133 K.O. II</option>
+        <option value="op-1f">OP-1 Field</option>
+        <option value="tx-6">TX-6</option>
+      </select>
+      <span class="select-arrow">▾</span>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- 대화 없을 때 -->
+    <div id="empty-state">
+      <p id="empty-device-label" class="empty-label"></p>
+      <h1 class="empty-heading">무엇이 궁금하신가요?</h1>
+      <p id="empty-desc" class="empty-desc"></p>
+      <button id="suggestion-btn" class="suggestion-pill" style="display:none">
+        <span class="pill-dot"></span>
+        <span id="suggestion-text"></span>
+        <span class="pill-arrow">→</span>
+      </button>
+    </div>
+
+    <!-- 대화 목록 -->
+    <div id="conversation"></div>
+
+    <div id="scroll-anchor"></div>
+  </main>
+
+  <footer>
+    <div class="input-bar">
+      <input
+        id="msg-input"
+        type="text"
+        placeholder="Message..."
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      >
+      <button id="send-btn" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-meta">
+      <button id="clear-btn">clear</button>
+      <p class="meta-note">매뉴얼 기반 AI 답변 · 부정확할 수 있습니다</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
