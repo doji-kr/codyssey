@@ -166,6 +166,25 @@ http://localhost:8000
 
 > 동일 날짜를 다시 실행하면 캐시(`results/`)에서 즉시 반환하며 API 호출을 생략한다.
 
+### API 호출 예시 (curl)
+
+`/api/plan`은 SSE(Server-Sent Events)로 응답한다. `-N`(no-buffer) 옵션을 붙여야 스트리밍 로그가 실시간으로 보인다.
+
+```bash
+# 올바른 요청 — 오늘(2026-07-01) 이후 ~ 1년 이내 날짜
+curl -N "http://localhost:8000/api/plan?date=2026-07-15"
+```
+
+```bash
+# 잘못된 요청 — 형식 오류(월 13, 일 99) → HTTP 400 반환
+curl -i "http://localhost:8000/api/plan?date=2026-13-99"
+# {"detail":"올바르지 않은 날짜 형식: '2026-13-99'. YYYY-MM-DD 형식을 사용하세요."}
+
+# 잘못된 요청 예시 — 과거 날짜도 동일하게 400
+curl -i "http://localhost:8000/api/plan?date=2026-01-01"
+# {"detail":"'2026-01-01'은 오늘 이전 날짜입니다. 내일 이후 날짜를 입력하세요."}
+```
+
 ### CLI 실행 결과 예시
 
 ```
