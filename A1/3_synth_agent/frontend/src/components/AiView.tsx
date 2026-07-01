@@ -244,14 +244,14 @@ export default function AiView({ device, onBack }: Props) {
 
       {/* ── Scrollable message area ── */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-10 pt-8 pb-4 max-w-2xl">
+        <div className="px-5 sm:px-10 pt-6 sm:pt-8 pb-4 max-w-2xl">
 
           {isEmpty ? (
             <div className="pt-16">
               <p className="text-[11px] uppercase tracking-[0.2em] text-gray-400 mb-8">
                 {device.displayName} · AI 모드
               </p>
-              <h2 className="text-[28px] font-black text-gray-900 leading-tight tracking-tight mb-3">
+              <h2 className="text-[24px] sm:text-[28px] font-black text-gray-900 leading-tight tracking-tight mb-3">
                 무엇이 궁금하신가요?
               </h2>
               <p className="text-[14px] text-gray-500 mb-10 leading-relaxed">
@@ -359,7 +359,7 @@ export default function AiView({ device, onBack }: Props) {
       </div>
 
       {/* ── Fixed input area ── */}
-      <div className="shrink-0 px-8 pb-5 pt-3" style={{ borderTop: '1px solid #e8e5e1' }}>
+      <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3" style={{ borderTop: '1px solid #e8e5e1' }}>
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2.5"
           style={{ backgroundColor: '#ffffff', border: '1px solid #dedad5' }}

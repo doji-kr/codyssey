@@ -10,7 +10,7 @@ interface Props {
 export default function GuideListView({ device, onSelectGuide, onBack }: Props) {
   return (
     <div className="min-h-full flex flex-col" style={{ backgroundColor: '#f5f4f2' }}>
-      <div className="px-12 pt-10 pb-14">
+      <div className="px-5 sm:px-12 pt-8 sm:pt-10 pb-10 sm:pb-14">
 
         {/* Breadcrumb */}
         <p className="text-[10px] font-medium uppercase tracking-[0.22em] mb-4"
@@ -23,7 +23,7 @@ export default function GuideListView({ device, onSelectGuide, onBack }: Props) 
         </p>
 
         {/* Title */}
-        <h1 className="text-[32px] font-black leading-tight tracking-tight mb-3"
+        <h1 className="text-[26px] sm:text-[32px] font-black leading-tight tracking-tight mb-3"
             style={{ color: '#1a1714' }}>
           {device.displayName} 마스터하기
         </h1>

@@ -76,14 +76,17 @@ export default function App() {
         onAiClick={handleStartAi}
       />
       <main className="flex flex-1 overflow-hidden">
-        <DevicePanel
-          device={device}
-          highlighted={highlighted}
-          onControlClick={(id) =>
-            setHighlighted((prev) => (prev.includes(id) ? [] : [id]))
-          }
-        />
-        <div className={`w-1/2 ${isFullHeight ? 'overflow-hidden h-full' : 'overflow-y-auto'}`}>
+        {/* DevicePanel: 모바일에서 숨김 */}
+        <div className="hidden md:flex md:w-1/2 shrink-0 overflow-hidden">
+          <DevicePanel
+            device={device}
+            highlighted={highlighted}
+            onControlClick={(id) =>
+              setHighlighted((prev) => (prev.includes(id) ? [] : [id]))
+            }
+          />
+        </div>
+        <div className={`w-full md:w-1/2 ${isFullHeight ? 'overflow-hidden h-full' : 'overflow-y-auto'}`}>
           <div key={`${view}-${device.id}-${guide?.id ?? ''}`} className="anim-view-enter h-full">
             {right}
           </div>

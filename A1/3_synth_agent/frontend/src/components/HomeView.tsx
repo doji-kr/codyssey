@@ -8,24 +8,24 @@ interface Props {
 
 export default function HomeView({ device, onStartMastery, onStartAi }: Props) {
   return (
-    <div className="min-h-full flex flex-col justify-center px-14 py-12">
+    <div className="min-h-full flex flex-col justify-center px-6 sm:px-14 py-8 sm:py-12">
       {/* Breadcrumb */}
-      <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-10">
+      <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-8 sm:mb-10">
         {device.displayName} · 학습 경로 선택
       </p>
 
       {/* Heading */}
-      <h1 className="text-5xl font-black leading-[1.1] tracking-tight mb-5">
+      <h1 className="text-4xl sm:text-5xl font-black leading-[1.1] tracking-tight mb-4 sm:mb-5">
         무엇을 배우고<br />싶으신가요?
       </h1>
 
       {/* Description */}
-      <p className="text-muted-foreground text-[15px] leading-relaxed mb-10 max-w-sm">
+      <p className="text-muted-foreground text-[14px] sm:text-[15px] leading-relaxed mb-8 sm:mb-10 max-w-sm">
         {device.description}
       </p>
 
       {/* Action cards */}
-      <div className="grid grid-cols-2 gap-4 max-w-lg mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-lg mb-8 sm:mb-10">
         {/* AI mode */}
         <button
           onClick={onStartAi}

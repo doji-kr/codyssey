@@ -61,7 +61,7 @@ export default function TutorialView({ guide, onStepChange, onBack }: Props) {
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-12 pt-8 pb-6">
+        <div className="px-5 sm:px-12 pt-6 sm:pt-8 pb-6">
 
           {/* Back link */}
           <button
@@ -103,7 +103,7 @@ export default function TutorialView({ guide, onStepChange, onBack }: Props) {
               className={isExiting ? 'anim-step-exit' : 'anim-step-enter'}
             >
               {/* Title */}
-              <h2 className="text-[28px] font-bold text-gray-950 mb-5 leading-tight tracking-tight">
+              <h2 className="text-[22px] sm:text-[28px] font-bold text-gray-950 mb-4 sm:mb-5 leading-tight tracking-tight">
                 {step.title}
               </h2>
 

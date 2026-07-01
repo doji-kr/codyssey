@@ -22,7 +22,7 @@ export default function Header({ devices, selectedDevice, onDeviceChange, onMast
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-1.5 text-sm hover:opacity-70 transition-opacity"
         >
-          <span className="text-xs text-muted-foreground uppercase tracking-wide">
+          <span className="hidden sm:inline text-xs text-muted-foreground uppercase tracking-wide">
             {selectedDevice.name}
           </span>
           <span className="font-semibold">{selectedDevice.displayName}</span>
@@ -59,11 +59,12 @@ export default function Header({ devices, selectedDevice, onDeviceChange, onMast
 
       {/* Center: brand */}
       <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-        <span className="text-sm font-semibold tracking-tight">synth agent v1</span>
+        <span className="hidden sm:inline text-sm font-semibold tracking-tight">synth agent v1</span>
+        <span className="sm:hidden text-sm font-semibold tracking-tight">SA</span>
       </div>
 
       {/* Right: nav */}
-      <nav className="flex-1 flex items-center justify-end gap-6">
+      <nav className="flex-1 flex items-center justify-end gap-4">
         <button
           onClick={onAiClick}
           className="text-[11px] text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors"
@@ -72,7 +73,7 @@ export default function Header({ devices, selectedDevice, onDeviceChange, onMast
         </button>
         <button
           onClick={onMasteryClick}
-          className="text-[11px] text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors"
+          className="hidden sm:inline text-[11px] text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors"
         >
           마스터리
         </button>
