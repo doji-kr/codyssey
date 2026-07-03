@@ -33,10 +33,12 @@
 
 ## 실행 방법 한눈에 보기
 
-날짜 쿼리를 던지는 방법은 실행 환경(Docker/로컬)과 인터페이스(웹 API/CLI)에 따라 4가지다. 상세 설명은 각각 [Docker](#docker-권장) · [로컬 설치](#로컬-설치) 절 참고.
+날짜 쿼리를 던지는 방법은 실행 환경(Docker/로컬)과 인터페이스(웹 API/CLI)에 따라 여러 가지다. 상세 설명은 각각 [Docker](#docker-권장) · [로컬 설치](#로컬-설치-docker-없이-실행) 절 참고.
 
 | 상황 | 명령 |
 |------|------|
+| **Docker** 이미지 로컬 빌드 | `docker build -t 42doji/travel-agent .` → [상세](#로컬에서-이미지-직접-빌드해-실행-레지스트리-없이) |
+| **Docker** 컨테이너 실행 (빌드 후) | `docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent` |
 | **Docker** 컨테이너에 날짜 쿼리 (웹 API, curl) | `curl -N "http://localhost:8000/api/plan?date=2026-07-15"` |
 | **Docker** 컨테이너 내부에서 CLI 직접 실행 | `docker exec -it travel-agent python travel_planner.py --date "2026-07-15"` |
 | **Docker 없이** 로컬에서 CLI 직접 실행 | `source .venv/bin/activate && python travel_planner.py --date "2026-07-15"` |
@@ -92,6 +94,36 @@ docker exec -it travel-agent python travel_planner.py --date "2026-07-15"
 ```
 
 컨테이너 이름/서비스명이 다르면 `docker ps`로 확인한다.
+
+### 로컬에서 이미지 직접 빌드해 실행 (레지스트리 없이)
+
+코드를 수정한 뒤 Docker Hub에 올리지 않고 바로 테스트하고 싶을 때 쓰는 방법. `docker compose` 없이 `docker build` + `docker run`만으로 끝난다.
+
+```bash
+# 1. 이미지 빌드 (태그명은 자유 지정 — 아래 예시는 travel-agent)
+docker build -t 42doji/travel-agent .
+
+# 2. 키 파일 준비 (이미 있다면 생략)
+cp .env.example .env   # .env 열어 세 가지 키 입력
+
+# 3. 실행 — --env-file로 키를 반드시 전달해야 한다
+docker run -d \
+  --name travel-agent \
+  -p 8000:8000 \
+  --env-file .env \
+  -v "$(pwd)/results:/app/results" \
+  42doji/travel-agent
+
+# 4. 브라우저 접속
+http://localhost:8000
+
+# 상태 확인 / 로그 / 중지
+docker ps
+docker logs -f travel-agent
+docker rm -f travel-agent
+```
+
+> ⚠️ **`--env-file .env`를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.** API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 `exit_on_missing_keys()`가 `exit(1)`로 즉시 종료시키기 때문이다(["API 키 발급 안내"](#api-키-발급-안내) 아래 참고). `docker ps -a`에서 `Exited (1)`로 나온다면 `docker logs <컨테이너명>`으로 누락된 키 목록을 확인할 수 있다.
 
 ### Docker Hub 이미지 (`42doji/travel-agent`)
 

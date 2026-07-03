@@ -922,19 +922,44 @@ git push --force origin main
     <div class="section-num">5</div>
     <span class="section-tag">Usage — 실행 방법</span>
   </div>
-  <h2>Docker든 로컬이든<br>날짜 하나로 쿼리를 던지는 4가지 방법</h2>
-  <p>실행 환경(Docker / 로컬)과 인터페이스(웹 API / CLI)를 조합하면 4가지 실행 경로가 나온다. 어떤 경로를 쓰든 파이프라인 코드(<code>travel_planner.py: run()</code>)는 동일하게 동작한다 — 차이는 "누가 <code>--date</code>를 넘겨주느냐"뿐이다.</p>
+  <h2>Docker든 로컬이든<br>날짜 하나로 쿼리를 던지는 여러 가지 방법</h2>
+  <p>실행 환경(Docker / 로컬)과 인터페이스(웹 API / CLI)를 조합하면 여러 실행 경로가 나온다. 어떤 경로를 쓰든 파이프라인 코드(<code>travel_planner.py: run()</code>)는 동일하게 동작한다 — 차이는 "누가 <code>--date</code>를 넘겨주느냐"뿐이다.</p>
 
   <table>
     <tr><th>상황</th><th>명령</th></tr>
+    <tr><td>Docker 이미지 로컬 빌드</td><td><code>docker build -t 42doji/travel-agent .</code></td></tr>
+    <tr><td>빌드한 이미지 실행</td><td><code>docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent</code></td></tr>
     <tr><td>Docker 컨테이너에 날짜 쿼리 (웹 API)</td><td><code>curl -N "http://localhost:8000/api/plan?date=2026-07-15"</code></td></tr>
     <tr><td>Docker 컨테이너 내부에서 CLI 직접 실행</td><td><code>docker exec -it travel-agent python travel_planner.py --date "2026-07-15"</code></td></tr>
     <tr><td>Docker 없이 로컬에서 CLI 직접 실행</td><td><code>python travel_planner.py --date "2026-07-15"</code></td></tr>
     <tr><td>Docker 없이 로컬 웹서버 실행 후 쿼리</td><td><code>python server.py</code> 후 동일한 <code>curl</code></td></tr>
   </table>
 
+  <div class="section-sub">Docker 이미지 직접 빌드해서 실행 (레지스트리 없이)</div>
+  <p>코드를 수정한 뒤 Docker Hub에 올리지 않고 바로 테스트하고 싶을 때 쓰는 가장 기본적인 흐름이다.</p>
+
+  <div class="code-block"><pre>
+<span class="c-comment"># 1. 이미지 빌드 (태그명은 자유 지정)</span>
+docker build -t 42doji/travel-agent <span class="c-str">.</span>
+
+<span class="c-comment"># 2. 키 파일 준비 (없다면)</span>
+cp .env.example .env
+
+<span class="c-comment"># 3. 실행 — --env-file로 키를 반드시 전달</span>
+docker run -d \
+  --name travel-agent \
+  -p 8000:8000 \
+  --env-file .env \
+  -v <span class="c-str">"$(pwd)/results:/app/results"</span> \
+  42doji/travel-agent
+</pre></div>
+
+  <div class="callout">
+    <strong>⚠️ <code>--env-file .env</code>를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.</strong> API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 <code>travel_planner.py: exit_on_missing_keys()</code>가 <code>sys.exit(1)</code>로 즉시 종료시키기 때문이다(3장 "④ API 키를 .env로 관리하는 이유" 참고). <code>docker ps -a</code>에서 <code>Exited (1)</code>로 나온다면 <code>docker logs &lt;컨테이너명&gt;</code>으로 누락된 키 목록을 바로 확인할 수 있다.
+  </div>
+
   <div class="section-sub">Docker 컨테이너에 명령 내리기</div>
-  <p>컨테이너가 이미 <code>docker compose up -d</code>로 떠 있다고 가정한다.</p>
+  <p>컨테이너가 이미 <code>docker compose up -d</code> 또는 위 <code>docker run</code>으로 떠 있다고 가정한다.</p>
 
   <span class="code-label">방법 A — 웹 API로 날짜 쿼리 (curl)</span>
   <div class="code-block"><pre>
