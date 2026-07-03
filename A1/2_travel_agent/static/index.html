@@ -630,18 +630,18 @@
 ① weather.py  — Open-Meteo Climate API
   11개 도시 × (월일 ±3일 평균기온·습도)
   → comfort_score = temp_score×0.6 + hum_score×0.4
-  → 최고 점수 도시 선정 (결정론적, LLM 미사용)
+  → 상위 N개 도시 선정 (기본 3, --top-n. 결정론적, LLM 미사용)
        │
-       ├─ ② tour.py — TourAPI KorService2
+       ├─ ② tour.py — TourAPI KorService2 (N개 도시 Fan-Out)
        │    searchFestival2  (당월 1일~, 기간 내 필터)
        │    searchStay2      (지역코드 기반, 10건)
        │
-       ├─ ③ places.py — Kakao Local + Image Search
+       ├─ ③ places.py — Kakao Local + Image Search (N개 도시 Fan-Out)
        │    "{도시명} 맛집" + category_group_code=FD6
        │    맛집별 이미지, 도시 여행 이미지 6장 병렬 수집
        │
        └─ ④ llm.py — OpenRouter → Gemini-2.5-flash
-            수집 데이터 → 오전/오후/저녁 마크다운 리포트
+            N개 도시 비교 + 1위 도시 오전/오후/저녁 마크다운 리포트
             파싱 실패 시 1회 재시도
        │
        ▼
@@ -676,8 +676,17 @@ results/{DATE}_travel_plan.md
   "festivals":     [ { "title": "", "eventplace": "", "start": "", "end": "", "image_url": "" } ],
   "restaurants":   [ { "name": "", "address": "", "category": "", "url": "", "x": "", "y": "", "image_url": "" } ],
   "stays":         [ { "name": "", "address": "", "tel": "", "image_url": "" } ],
+  "cities": [
+    { "name": "속초", "area_code": 32, "weather": { }, "score": 0.568,
+      "festivals": [ ], "restaurants": [ ], "stays": [ ], "city_images": [ ] },
+    { "name": "강릉", "area_code": 32, "weather": { }, "score": 0.531, "…": "…" }
+  ],
   "errors":        [ { "step": "", "type": "", "message": "" } ]
 }</div>
+        <p style="margin-top:8px; font-size:13px; color:var(--text-muted, #888)">
+          <code>city</code>/<code>festivals</code>/<code>restaurants</code>/<code>stays</code>/<code>city_images</code>는 쾌적도 1위 도시 데이터.
+          <code>cities[]</code>는 상위 N개 후보 도시(기본 3, <code>--top-n</code>) 각각의 전체 데이터를 담은 Fan-Out 결과 배열이다.
+        </p>
       </div>
 
       <div class="docs-section">

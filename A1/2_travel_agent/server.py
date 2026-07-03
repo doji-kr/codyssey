@@ -49,6 +49,7 @@ async def plan_stream(date: str):
                 "restaurants": raw_data.get("restaurants", []),
                 "stays":       raw_data.get("stays", []),
                 "festivals":   raw_data.get("festivals", []),
+                "cities":      raw_data.get("cities", []),
                 "json_path":   json_path,
                 "md_path":     md_path,
             })
@@ -122,6 +123,7 @@ async def get_result(date: str):
         "restaurants": raw_data.get("restaurants", []),
         "stays":       raw_data.get("stays", []),
         "festivals":   raw_data.get("festivals", []),
+        "cities":      raw_data.get("cities", []),
     }
 
 

@@ -17,6 +17,8 @@ import llm
 import report
 
 
+TOP_N_CITIES = 3  # 복수 도시 추천 Fan-Out — 쾌적도 점수 상위 N개 도시를 순회 수집
+
 REQUIRED_KEYS = {
     "OPENROUTER_API_KEY": "OpenRouter — https://openrouter.ai/keys",
     "KAKAO_REST_API_KEY": "Kakao Local — https://developers.kakao.com",
@@ -93,7 +95,7 @@ def _load_cache(date_str: str) -> tuple[dict, str] | None:
     return None
 
 
-def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, str]:
+def run(date_str: str, log: Callable[[str], None] = print, top_n: int = TOP_N_CITIES) -> tuple[str, str, str]:
     """파이프라인 실행. (json_path, md_path, markdown) 반환."""
     errors: list = []
 
@@ -108,24 +110,36 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
         md_path   = str(Path("results") / f"{date_str}_travel_plan.md")
         return json_path, md_path, markdown, raw_data
 
-    # ── 1단계: 날씨 기반 도시 선정 ─────────────────────────────────────
-    log("[1/4] 날씨 데이터 조회 및 최적 도시 선정 중...")
-    city_result = weather.select_best_city(date_str, errors, log=log)
+    # ── 1단계: 날씨 기반 상위 N개 도시 선정 (복수 도시 추천) ────────────
+    log(f"[1/4] 날씨 데이터 조회 및 상위 {top_n}개 도시 선정 중...")
+    top_cities  = weather.select_top_cities(date_str, errors, log=log, top_n=top_n)
+    city_result = top_cities[0]
     city_name   = city_result["recommended_city"]
     area_code   = city_result["area_code"]
     log(f"      ✔ 추천 도시: {city_name} (쾌적도 점수: {city_result['score']})")
+    if len(top_cities) > 1:
+        alt = ", ".join(f"{c['recommended_city']}({c['score']:.2f})" for c in top_cities[1:])
+        log(f"      · 대안 후보: {alt}")
 
-    # ── 2단계: TourAPI 축제·숙박 ────────────────────────────────────────
-    log("[2/4] TourAPI 축제·숙박 정보 수집 중...")
-    festivals = tour.fetch_festivals(area_code, date_str, errors)
-    stays     = tour.fetch_stays(area_code, errors)
-    log(f"      ✔ 축제 {len(festivals)}건 / 숙박 {len(stays)}건")
+    # ── 2단계: 후보 도시별 TourAPI 축제·숙박 Fan-Out 수집 ───────────────
+    log(f"[2/4] 후보 도시 {len(top_cities)}곳 TourAPI 축제·숙박 Fan-Out 수집 중...")
+    city_bundles = []
+    for c in top_cities:
+        c_festivals = tour.fetch_festivals(c["area_code"], date_str, errors)
+        c_stays     = tour.fetch_stays(c["area_code"], errors)
+        city_bundles.append({**c, "festivals": c_festivals, "stays": c_stays})
+        log(f"      · {c['recommended_city']}: 축제 {len(c_festivals)}건 / 숙박 {len(c_stays)}건")
+    festivals = city_bundles[0]["festivals"]
+    stays     = city_bundles[0]["stays"]
 
-    # ── 3단계: Kakao Local 맛집 + 도시 이미지 ──────────────────────────
-    log("[3/4] Kakao Local 맛집 및 이미지 검색 중...")
-    restaurants  = places.fetch_restaurants(city_name, errors)
-    city_images  = places.fetch_city_images(city_name, errors)
-    log(f"      ✔ 맛집 {len(restaurants)}건 / 도시 이미지 {len(city_images)}장")
+    # ── 3단계: 후보 도시별 Kakao Local 맛집·이미지 Fan-Out 수집 ─────────
+    log(f"[3/4] 후보 도시 {len(top_cities)}곳 Kakao Local 맛집·이미지 Fan-Out 수집 중...")
+    for bundle in city_bundles:
+        bundle["restaurants"] = places.fetch_restaurants(bundle["recommended_city"], errors)
+        bundle["city_images"] = places.fetch_city_images(bundle["recommended_city"], errors)
+        log(f"      · {bundle['recommended_city']}: 맛집 {len(bundle['restaurants'])}건 / 도시 이미지 {len(bundle['city_images'])}장")
+    restaurants = city_bundles[0]["restaurants"]
+    city_images = city_bundles[0]["city_images"]
 
     # ── raw_data 조립 ────────────────────────────────────────────────────
     raw_data = {
@@ -140,7 +154,20 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
         "festivals":   festivals,
         "restaurants": restaurants,
         "stays":       stays,
-        "errors":      errors,
+        "cities": [
+            {
+                "name":        b["recommended_city"],
+                "area_code":   b["area_code"],
+                "weather":     b["weather"],
+                "score":       b["score"],
+                "festivals":   b["festivals"],
+                "restaurants": b["restaurants"],
+                "stays":       b["stays"],
+                "city_images": b["city_images"],
+            }
+            for b in city_bundles
+        ],
+        "errors": errors,
     }
 
     # ── 4단계: LLM 리포트 생성 ──────────────────────────────────────────
@@ -178,9 +205,16 @@ def main() -> None:
         metavar="YYYY-MM-DD",
         help="여행 날짜 (예: 2026-07-15)",
     )
+    parser.add_argument(
+        "--top-n",
+        type=int,
+        default=TOP_N_CITIES,
+        metavar="N",
+        help=f"쾌적도 상위 N개 도시 추천 (Fan-Out 대상, 기본값 {TOP_N_CITIES})",
+    )
     args = parser.parse_args()
 
-    run(args.date)
+    run(args.date, top_n=args.top_n)
 
 
 if __name__ == "__main__":

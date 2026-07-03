@@ -85,6 +85,39 @@ def fetch_climate(city: dict, month: int, day: int, errors: list) -> dict | None
         return None
 
 
+_FALLBACK_CITY = {
+    "recommended_city": "서울",
+    "area_code": 1,
+    "weather": {"avg_temp_c": 20.0, "humidity_pct": 60, "source": "fallback"},
+    "score": 0.0,
+}
+
+
+def _rank_cities(date_str: str, errors: list, log: Callable = print) -> list[dict]:
+    """모든 후보 도시의 쾌적도 점수를 계산해 내림차순으로 정렬한 리스트 반환."""
+    year, month, day = map(int, date_str.split("-"))
+    log(f"  [날씨] {len(CANDIDATE_CITIES)}개 도시 기후 평년값 조회 중 ({month}월 {day}일 기준)...")
+
+    ranked = []
+    for city in CANDIDATE_CITIES:
+        climate = fetch_climate(city, month, day, errors)
+        if climate is None:
+            continue
+
+        score = _comfort_score(climate["avg_temp_c"], climate["humidity_pct"])
+        log(f"         {city['name']:4s} | {climate['avg_temp_c']:5.1f}°C | 습도 {climate['humidity_pct']:3.0f}% | 점수 {score:.4f}")
+
+        ranked.append({
+            "recommended_city": city["name"],
+            "area_code":        city["area_code"],
+            "weather":          climate,
+            "score":            score,
+        })
+
+    ranked.sort(key=lambda c: c["score"], reverse=True)
+    return ranked
+
+
 def select_best_city(date_str: str, errors: list, log: Callable = print) -> dict:
     """날짜 기준으로 가장 쾌적한 도시를 결정론적으로 선정.
 
@@ -96,33 +129,18 @@ def select_best_city(date_str: str, errors: list, log: Callable = print) -> dict
             "score": 0.82
         }
     """
-    year, month, day = map(int, date_str.split("-"))
-    log(f"  [날씨] {len(CANDIDATE_CITIES)}개 도시 기후 평년값 조회 중 ({month}월 {day}일 기준)...")
+    return select_top_cities(date_str, errors, log=log, top_n=1)[0]
 
-    best = None
-    for city in CANDIDATE_CITIES:
-        climate = fetch_climate(city, month, day, errors)
-        if climate is None:
-            continue
 
-        score = _comfort_score(climate["avg_temp_c"], climate["humidity_pct"])
-        log(f"         {city['name']:4s} | {climate['avg_temp_c']:5.1f}°C | 습도 {climate['humidity_pct']:3.0f}% | 점수 {score:.4f}")
+def select_top_cities(date_str: str, errors: list, log: Callable = print, top_n: int = 3) -> list[dict]:
+    """날짜 기준 쾌적도 점수 상위 top_n개 도시를 내림차순으로 반환 (Fan-Out 대상).
 
-        if best is None or score > best["score"]:
-            best = {
-                "recommended_city": city["name"],
-                "area_code":        city["area_code"],
-                "weather":          climate,
-                "score":            score,
-            }
+    Returns: [{"recommended_city": "", "area_code": 0, "weather": {}, "score": 0.0}, ...]
+    """
+    ranked = _rank_cities(date_str, errors, log=log)
 
-    if best is None:
+    if not ranked:
         errors.append({"step": "weather", "type": "ALL_FAILED", "message": "모든 도시 기후 조회 실패 — 기본값 사용"})
-        best = {
-            "recommended_city": "서울",
-            "area_code": 1,
-            "weather": {"avg_temp_c": 20.0, "humidity_pct": 60, "source": "fallback"},
-            "score": 0.0,
-        }
+        return [dict(_FALLBACK_CITY)]
 
-    return best
+    return ranked[:top_n]

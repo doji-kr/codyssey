@@ -14,10 +14,18 @@ def _build_prompt(raw_data: dict) -> str:
     festivals   = raw_data.get("festivals", [])
     restaurants = raw_data.get("restaurants", [])
     stays       = raw_data.get("stays", [])
+    cities      = raw_data.get("cities", [])
 
     festivals_text   = json.dumps(festivals,   ensure_ascii=False, indent=2) if festivals   else "검색 결과 0건"
     restaurants_text = json.dumps(restaurants, ensure_ascii=False, indent=2) if restaurants else "검색 결과 0건"
     stays_text       = json.dumps(stays,       ensure_ascii=False, indent=2) if stays       else "검색 결과 0건"
+
+    comparison_lines = [
+        f"- {c['name']}: 평균기온 {c['weather'].get('avg_temp_c')}°C, 습도 {c['weather'].get('humidity_pct')}%, "
+        f"쾌적도 점수 {c.get('score')}, 축제 {len(c.get('festivals', []))}건, 숙박 {len(c.get('stays', []))}건"
+        for c in cities
+    ]
+    comparison_text = "\n".join(comparison_lines) if comparison_lines else "비교 데이터 없음"
 
     return f"""당신은 국내 여행 전문 작가입니다.
 아래 실데이터를 바탕으로 **한국어 마크다운 여행 리포트**를 작성하세요.
@@ -25,6 +33,8 @@ def _build_prompt(raw_data: dict) -> str:
 ## 작성 규칙
 - 데이터에 없는 정보를 지어내지 마세요.
 - 데이터가 없는 항목은 "데이터 없음 (검색 결과 0건)"으로 표기하세요.
+- 리포트 맨 앞에 "후보 도시 비교" 섹션을 두고, 아래 "후보 도시 비교" 데이터를 표나 목록으로 정리하세요. 쾌적도 점수가 가장 높은 도시를 최종 추천 도시로 확정한 이유를 한두 문장으로 설명하세요.
+- 상세 일정(오전/오후/저녁), 맛집, 숙박 소개는 **최종 추천 도시({city['name']}) 기준으로만** 작성하세요. 나머지 후보 도시는 비교 섹션에서만 간단히 언급하세요.
 - 오전/오후/저녁 1일 동선 시나리오를 반드시 포함하세요.
 - 맛집은 제공된 목록에서 3~5곳을 선별해 상세히 소개하세요.
 - 숙박은 제공된 목록에서 2~3곳을 소개하세요.
@@ -34,17 +44,20 @@ def _build_prompt(raw_data: dict) -> str:
 
 ### 기본 정보
 - 날짜: {raw_data['date']}
-- 추천 도시: {city['name']}
+- 최종 추천 도시: {city['name']}
 - 날씨 (평년값): 평균기온 {weather.get('avg_temp_c')}°C, 습도 {weather.get('humidity_pct')}%
 - 쾌적도 점수: {city.get('score')} / 1.0
 
-### 축제·행사
+### 후보 도시 비교 (쾌적도 상위 {len(cities)}개, Fan-Out 수집)
+{comparison_text}
+
+### 축제·행사 (최종 추천 도시)
 {festivals_text}
 
-### 맛집 (Kakao Local)
+### 맛집 (Kakao Local, 최종 추천 도시)
 {restaurants_text}
 
-### 숙박 (TourAPI)
+### 숙박 (TourAPI, 최종 추천 도시)
 {stays_text}
 """
 

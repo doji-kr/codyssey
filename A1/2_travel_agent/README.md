@@ -12,14 +12,14 @@
         ▼
 ① Open-Meteo (기후 평년값)  ──>  11개 후보 도시 쾌적도 점수 계산 (LLM 미사용)
         │
-        ▼  최적 도시 선정
-        ├──> ② TourAPI searchFestival2  (날짜+지역 → 축제/행사)
-        ├──> ③ Kakao Local              (도시명 → 맛집 10곳)
-        └──> ④ TourAPI searchStay2      (지역 → 숙박 10곳)
+        ▼  쾌적도 상위 N개 도시 선정 (기본 3개, Fan-Out 대상)
+        ├──> ② TourAPI searchFestival2  (N개 도시 각각 → 축제/행사)
+        ├──> ③ Kakao Local              (N개 도시 각각 → 맛집 10곳)
+        └──> ④ TourAPI searchStay2      (N개 도시 각각 → 숙박 10곳)
         │
         ▼
 ⑤ OpenRouter LLM (google/gemini-2.5-flash)
-   수집 데이터 → 오전/오후/저녁 일정 포함 마크다운 리포트
+   N개 도시 비교 + 최종 추천 도시의 오전/오후/저녁 일정 포함 마크다운 리포트
         │
         ▼
 [결과: results/{DATE}_raw_data.json + {DATE}_travel_plan.md]
@@ -28,6 +28,8 @@
 
 
 > **캐시**: 동일 날짜를 재실행하면 `results/` 파일을 그대로 반환하고 모든 API 호출을 생략한다.
+>
+> **복수 도시 추천 (Fan-Out)**: 쾌적도 점수 상위 `--top-n`(기본 3)개 도시를 순회하며 축제·맛집·숙박·이미지를 각각 수집한다. 1위 도시는 `raw_data.json`의 최상위 필드(`city`/`festivals`/`restaurants`/`stays`)에, 전체 후보는 `cities[]` 배열에 담기며 리포트 맨 앞에 도시 비교 섹션으로 요약된다.
 
 ## 실행 방법 한눈에 보기
 
@@ -184,8 +186,11 @@ TOUR_API_KEY=xxxxxxxxxxxxxxxx           # https://www.data.go.kr
 ### CLI
 
 ```bash
-# 정상 실행
+# 정상 실행 (기본: 쾌적도 상위 3개 도시 Fan-Out)
 python travel_planner.py --date "2026-10-24"
+
+# 상위 N개 도시로 Fan-Out 범위 조정 (복수 도시 추천)
+python travel_planner.py --date "2026-10-24" --top-n 5
 
 # 잘못된 날짜 형식 → 에러 메시지 출력 후 종료
 python travel_planner.py --date "2026-13-99"
