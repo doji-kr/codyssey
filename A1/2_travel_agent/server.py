@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 import travel_planner
 
 load_dotenv()
+travel_planner.exit_on_missing_keys()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")

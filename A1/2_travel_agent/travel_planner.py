@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, date as date_type
 from pathlib import Path
@@ -14,6 +15,34 @@ import tour
 import places
 import llm
 import report
+
+
+REQUIRED_KEYS = {
+    "OPENROUTER_API_KEY": "OpenRouter — https://openrouter.ai/keys",
+    "KAKAO_REST_API_KEY": "Kakao Local — https://developers.kakao.com",
+    "TOUR_API_KEY":       "TourAPI (공공데이터포털) — https://www.data.go.kr",
+}
+
+
+def check_required_keys() -> list[str]:
+    """누락된 필수 환경변수 키 이름 리스트 반환 (전부 있으면 빈 리스트)."""
+    return [key for key in REQUIRED_KEYS if not os.getenv(key)]
+
+
+def exit_on_missing_keys() -> None:
+    """필수 키가 하나라도 없으면 설정 안내를 출력하고 즉시 종료한다."""
+    missing = check_required_keys()
+    if not missing:
+        return
+
+    print("[오류] 다음 API 키가 .env에 설정되지 않았습니다:", file=sys.stderr)
+    for key in missing:
+        print(f"  - {key} ({REQUIRED_KEYS[key]})", file=sys.stderr)
+    print(file=sys.stderr)
+    print("설정 방법:", file=sys.stderr)
+    print("  1. cp .env.example .env", file=sys.stderr)
+    print("  2. .env 파일을 열어 누락된 키 값을 입력", file=sys.stderr)
+    sys.exit(1)
 
 
 def validate_date(date_string: str) -> str:
@@ -136,6 +165,7 @@ def run(date_str: str, log: Callable[[str], None] = print) -> tuple[str, str, st
 
 def main() -> None:
     load_dotenv()
+    exit_on_missing_keys()
 
     parser = argparse.ArgumentParser(
         description="날짜 기반 국내 여행 추천 리포트 생성기",

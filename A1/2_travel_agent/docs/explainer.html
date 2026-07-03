@@ -518,6 +518,7 @@
   <a href="#s2"><span class="num">2</span> <span>학습 목표(Study)</span></a>
   <a href="#s3"><span class="num">3</span> <span>요구사항 체크리스트</span></a>
   <a href="#s4"><span class="num">4</span> <span>보안 자체 점검</span></a>
+  <a href="#s5"><span class="num">5</span> <span>실행 방법</span></a>
 </nav>
 
 <div class="hero">
@@ -825,7 +826,7 @@
   <div class="section-sub">에러 처리</div>
   <table>
     <tr><th>요구사항</th><th>상태</th><th>근거</th></tr>
-    <tr><td>API 키 미설정 시 <strong>즉시 종료</strong> + 설정 안내</td><td><span class="badge badge-fail">미충족</span></td><td>실제로는 <code>sys.exit()</code> 없이 각 모듈이 <code>KEY_MISSING</code>을 <code>errors[]</code>에 기록하고 해당 단계만 건너뛴 채 계속 진행함(<code>tour.py:11-14</code>, <code>places.py:58-61</code>, <code>llm.py:71-74</code>). 데모 견고성 측면에서는 더 낫지만, 스펙 문구("즉시 종료")와는 다르게 구현됨</td></tr>
+    <tr><td>API 키 미설정 시 <strong>즉시 종료</strong> + 설정 안내</td><td><span class="badge badge-pass">충족</span></td><td><code>travel_planner.py: exit_on_missing_keys()</code>가 CLI(<code>main()</code>)와 웹 서버(<code>server.py</code> 모듈 로드 시점) 양쪽 진입점에서 파이프라인 시작 전에 필수 키 3종을 검사해, 하나라도 없으면 누락 목록과 <code>.env</code> 설정 안내를 출력하고 <code>sys.exit(1)</code>로 즉시 종료한다. 각 모듈(<code>tour.py</code>, <code>places.py</code>, <code>llm.py</code>)의 <code>KEY_MISSING</code> → <code>errors[]</code> 기록은 진입점 가드를 통과한 뒤 개별 API 호출이 실행 중 실패(예: 키 폐기)하는 경우를 위한 별도의 방어선으로 유지</td></tr>
     <tr><td>지도 API 실패 시 맛집 "데이터 없음" 처리 후 진행</td><td><span class="badge badge-pass">충족</span></td><td>위와 동일 파일 — 예외/오류 시 빈 배열 반환</td></tr>
     <tr><td>LLM JSON 파싱 실패 시 프롬프트 보정 후 1회 재시도</td><td><span class="badge badge-adapt">변형 충족</span></td><td>최종 산출물이 JSON이 아닌 마크다운이라 "파싱" 자체가 없음. 대신 <strong>HTTP 호출 실패</strong> 시 1회 재시도(<code>llm.py:78-89</code>)로 동일한 견고성 원칙을 적용</td></tr>
     <tr><td>내부 오류 목록(<code>errors[]</code>) 관리, 결과 JSON에 포함</td><td><span class="badge badge-pass">충족</span></td><td><code>raw_data["errors"]</code>, 빈 리스트도 정상 (<code>travel_planner.py:69,114,120</code>)</td></tr>
@@ -848,7 +849,7 @@
   </table>
 
   <div class="callout">
-    <strong>종합 판단:</strong> 필수 요구사항은 대부분 충족하거나, 문서화된 설계 근거를 가지고 더 견고한 방식으로 변형 충족했다. 유일한 명확한 미충족 항목은 <strong>"키 미설정 시 즉시 종료"</strong>다 — 필요하다면 각 모듈 진입 전에 <code>if not os.getenv(...): sys.exit(...)</code> 가드를 추가해 스펙 문구를 그대로 맞출 수 있다.
+    <strong>종합 판단:</strong> 필수 요구사항은 모두 충족하거나, 문서화된 설계 근거를 가지고 더 견고한 방식으로 변형 충족했다. 과거 <strong>"키 미설정 시 즉시 종료"</strong> 항목이 미충족으로 남아 있었으나, <code>exit_on_missing_keys()</code> 가드를 CLI·서버 진입점에 추가해 스펙 문구대로 해소했다. 심화 과제 중 "복수 도시 추천 Fan-out"만 미구현으로 남아 있다(선택 사항).
   </div>
 </section>
 
@@ -913,6 +914,92 @@ git push --force origin main
       <p>노출 여부가 불확실할 때 "확실해질 때까지 기다리기"보다 "일단 폐기하고 재발급"이 비용이 훨씬 싸다. API 키 재발급은 몇 초, 무단 사용으로 인한 과금은 되돌릴 수 없다.</p>
     </div>
   </div>
+</section>
+
+<!-- ══════════════════ Section 4 : Usage ══════════════════ -->
+<section class="section" id="s5">
+  <div class="section-meta">
+    <div class="section-num">5</div>
+    <span class="section-tag">Usage — 실행 방법</span>
+  </div>
+  <h2>Docker든 로컬이든<br>날짜 하나로 쿼리를 던지는 4가지 방법</h2>
+  <p>실행 환경(Docker / 로컬)과 인터페이스(웹 API / CLI)를 조합하면 4가지 실행 경로가 나온다. 어떤 경로를 쓰든 파이프라인 코드(<code>travel_planner.py: run()</code>)는 동일하게 동작한다 — 차이는 "누가 <code>--date</code>를 넘겨주느냐"뿐이다.</p>
+
+  <table>
+    <tr><th>상황</th><th>명령</th></tr>
+    <tr><td>Docker 컨테이너에 날짜 쿼리 (웹 API)</td><td><code>curl -N "http://localhost:8000/api/plan?date=2026-07-15"</code></td></tr>
+    <tr><td>Docker 컨테이너 내부에서 CLI 직접 실행</td><td><code>docker exec -it travel-agent python travel_planner.py --date "2026-07-15"</code></td></tr>
+    <tr><td>Docker 없이 로컬에서 CLI 직접 실행</td><td><code>python travel_planner.py --date "2026-07-15"</code></td></tr>
+    <tr><td>Docker 없이 로컬 웹서버 실행 후 쿼리</td><td><code>python server.py</code> 후 동일한 <code>curl</code></td></tr>
+  </table>
+
+  <div class="section-sub">Docker 컨테이너에 명령 내리기</div>
+  <p>컨테이너가 이미 <code>docker compose up -d</code>로 떠 있다고 가정한다.</p>
+
+  <span class="code-label">방법 A — 웹 API로 날짜 쿼리 (curl)</span>
+  <div class="code-block"><pre>
+<span class="c-comment"># /api/plan은 SSE(Server-Sent Events)로 응답 → -N(no-buffer) 필수</span>
+curl -N <span class="c-str">"http://localhost:8000/api/plan?date=2026-07-15"</span>
+</pre></div>
+
+  <span class="code-label">방법 B — 컨테이너 내부에서 CLI 스크립트 직접 실행</span>
+  <div class="code-block"><pre>
+<span class="c-comment"># docker compose로 띄운 경우 (서비스명 = travel-agent)</span>
+docker compose exec travel-agent python travel_planner.py --date <span class="c-str">"2026-07-15"</span>
+
+<span class="c-comment"># docker run --name travel-agent 로 띄운 경우</span>
+docker exec -it travel-agent python travel_planner.py --date <span class="c-str">"2026-07-15"</span>
+
+<span class="c-comment"># 컨테이너 이름/서비스명이 다르면 확인</span>
+docker ps
+</pre></div>
+
+  <div class="callout">
+    웹 서버 없이 CLI를 컨테이너 안에서 직접 실행해도 <code>results/</code>는 볼륨 마운트(<code>./results:/app/results</code>)돼 있어 호스트에서 즉시 결과 파일을 확인할 수 있다.
+  </div>
+
+  <div class="section-sub">Docker 없이 실행 (일반 Python 프로그램)</div>
+  <p>호스트에 가상환경을 만들어 <code>travel_planner.py</code>나 <code>server.py</code>를 직접 돌리는 방식. Docker 데몬이 없어도 동일한 파이프라인을 실행할 수 있다.</p>
+
+  <span class="code-label">1) 가상환경 준비 (최초 1회)</span>
+  <div class="code-block"><pre>
+python3 -m venv .venv
+source .venv/bin/activate    <span class="c-comment"># Windows: .venv\Scripts\activate</span>
+pip install -r requirements.txt
+cp .env.example .env         <span class="c-comment"># .env에 API 키 3개 입력</span>
+</pre></div>
+
+  <span class="code-label">2-A) CLI로 직접 실행 — 리포트만 생성하고 종료</span>
+  <div class="code-block"><pre>
+python travel_planner.py --date <span class="c-str">"2026-07-15"</span>
+
+<span class="c-comment"># 잘못된 형식/범위는 usage 출력 후 종료 코드 2로 종료</span>
+python travel_planner.py --date <span class="c-str">"2026-13-99"</span>   <span class="c-comment"># 형식 오류</span>
+python travel_planner.py --date <span class="c-str">"2026-01-01"</span>   <span class="c-comment"># 오늘 이전 날짜</span>
+</pre></div>
+
+  <span class="code-label">2-B) 웹서버로 실행 — 브라우저 또는 curl로 쿼리</span>
+  <div class="code-block"><pre>
+.venv/bin/python server.py
+<span class="c-comment"># → http://localhost:8000 접속, 또는 동일한 curl 명령 사용 가능</span>
+curl -N <span class="c-str">"http://localhost:8000/api/plan?date=2026-07-15"</span>
+</pre></div>
+
+  <div class="section-sub">날짜 쿼리 예시 — 정상/오류 응답 비교</div>
+  <div class="code-block"><pre>
+<span class="c-comment"># 정상 — 오늘 이후 ~ 1년 이내</span>
+curl -i <span class="c-str">"http://localhost:8000/api/plan?date=2026-07-15"</span>
+
+<span class="c-comment"># 형식 오류(월 13, 일 99) → HTTP 400</span>
+curl -i <span class="c-str">"http://localhost:8000/api/plan?date=2026-13-99"</span>
+<span class="c-comment"># {"detail":"올바르지 않은 날짜 형식: '2026-13-99'. YYYY-MM-DD 형식을 사용하세요."}</span>
+
+<span class="c-comment"># 과거 날짜 → HTTP 400</span>
+curl -i <span class="c-str">"http://localhost:8000/api/plan?date=2026-01-01"</span>
+<span class="c-comment"># {"detail":"'2026-01-01'은 오늘 이전 날짜입니다. 내일 이후 날짜를 입력하세요."}</span>
+</pre></div>
+
+  <p>검증 로직은 CLI(<code>validate_date()</code>)와 서버(<code>check_date()</code>) 양쪽에 동일한 규칙(형식 · 오늘 이후 · 1년 이내)으로 구현돼 있다 — 실행 경로와 무관하게 같은 날짜는 항상 같은 검증 결과를 낸다. 자세한 옵션은 <a href="../README.md">README</a> "실행 방법 한눈에 보기" 절 참고.</p>
 </section>
 
 <footer>

@@ -29,6 +29,19 @@
 
 > **캐시**: 동일 날짜를 재실행하면 `results/` 파일을 그대로 반환하고 모든 API 호출을 생략한다.
 
+## 실행 방법 한눈에 보기
+
+날짜 쿼리를 던지는 방법은 실행 환경(Docker/로컬)과 인터페이스(웹 API/CLI)에 따라 4가지다. 상세 설명은 각각 [Docker](#docker-권장) · [로컬 설치](#로컬-설치) 절 참고.
+
+| 상황 | 명령 |
+|------|------|
+| **Docker** 컨테이너에 날짜 쿼리 (웹 API, curl) | `curl -N "http://localhost:8000/api/plan?date=2026-07-15"` |
+| **Docker** 컨테이너 내부에서 CLI 직접 실행 | `docker exec -it travel-agent python travel_planner.py --date "2026-07-15"` |
+| **Docker 없이** 로컬에서 CLI 직접 실행 | `source .venv/bin/activate && python travel_planner.py --date "2026-07-15"` |
+| **Docker 없이** 로컬 웹서버 실행 후 쿼리 | `.venv/bin/python server.py` 실행 후 `curl -N "http://localhost:8000/api/plan?date=2026-07-15"` |
+
+> 웹 API(`/api/plan`)는 Docker로 띄우든 로컬(`server.py`)로 띄우든 포트(`8000`)와 요청 형식이 동일하다. 컨테이너 이름은 `docker-compose.yml`(compose 사용 시) 또는 `docker run --name`에 지정한 이름(예시는 `travel-agent`)을 따른다.
+
 ## Docker (권장)
 
 API 키만 넣으면 환경 설치 없이 바로 실행된다.
@@ -51,6 +64,32 @@ docker compose down
 생성된 리포트는 호스트의 `./results/` 폴더에 저장되어 컨테이너를 삭제해도 유지된다.
 
 키를 바꾸려면 `.env` 수정 후 `docker compose restart`만 하면 된다.
+
+### 실행 중인 컨테이너에 명령 내리기
+
+컨테이너가 떠 있는 상태에서 여행 리포트를 만드는 방법은 두 가지다.
+
+**방법 A — 웹 API로 날짜 쿼리 (curl)**
+
+`/api/plan`은 SSE(Server-Sent Events)로 응답하므로 `-N`(no-buffer) 옵션을 붙여야 진행 로그가 실시간으로 보인다.
+
+```bash
+curl -N "http://localhost:8000/api/plan?date=2026-07-15"
+```
+
+**방법 B — 컨테이너 내부에서 CLI 스크립트 직접 실행**
+
+`docker exec`로 컨테이너 안에 들어가 `travel_planner.py`를 웹서버 없이 바로 돌릴 수 있다. 결과는 볼륨 마운트된 `./results/`에 그대로 저장되므로 호스트에서 즉시 확인 가능하다.
+
+```bash
+# docker compose로 띄운 경우 (서비스명 = travel-agent)
+docker compose exec travel-agent python travel_planner.py --date "2026-07-15"
+
+# docker run --name travel-agent 로 띄운 경우
+docker exec -it travel-agent python travel_planner.py --date "2026-07-15"
+```
+
+컨테이너 이름/서비스명이 다르면 `docker ps`로 확인한다.
 
 ### Docker Hub 이미지 (`42doji/travel-agent`)
 
@@ -85,20 +124,26 @@ docker rm -f travel-agent
 
 코드 수정 후 Docker Hub 이미지를 갱신하려면:
 
+Apple Silicon(arm64) 맥에서 `docker build`만 실행하면 arm64 이미지만 만들어져,
+Intel(amd64) 환경에서 `no matching manifest for linux/amd64` 오류가 발생한다.
+`buildx`로 두 아키텍처를 함께 빌드해 하나의 매니페스트로 푸시한다.
+
 ```bash
 # 1. 로그인 (최초 1회)
 docker login
 
-# 2. 빌드
-docker build -t 42doji/travel-agent:latest .
+# 2. amd64 + arm64 동시 빌드 후 푸시
+docker buildx build --platform linux/amd64,linux/arm64 -t 42doji/travel-agent:latest --push .
 
-# 3. 푸시
-docker push 42doji/travel-agent:latest
+# (참고) 매니페스트에 두 아키텍처가 모두 포함됐는지 확인
+docker manifest inspect 42doji/travel-agent:latest
 ```
 
 ---
 
-## 로컬 설치
+## 로컬 설치 (Docker 없이 실행)
+
+Docker 없이 호스트에 Python 환경을 직접 구성해 실행하는 방법이다.
 
 ```bash
 # 1. 가상환경 생성 및 활성화
@@ -131,6 +176,8 @@ TOUR_API_KEY=xxxxxxxxxxxxxxxx           # https://www.data.go.kr
 | OpenRouter | [openrouter.ai/keys](https://openrouter.ai/keys) | `google/gemini-2.5-flash` 모델 사용 |
 | Kakao Local | [developers.kakao.com](https://developers.kakao.com) → 앱 생성 → REST API 키 | 카카오맵 서비스 활성화 필요 |
 | TourAPI | [data.go.kr](https://www.data.go.kr) → "한국관광공사_국문 관광정보 서비스_GW" 활용신청 | End Point: `KorService2` |
+
+> **키 미설정 시 즉시 종료**: `OPENROUTER_API_KEY` · `KAKAO_REST_API_KEY` · `TOUR_API_KEY` 중 하나라도 없으면 CLI(`travel_planner.py`)와 웹 서버(`server.py`) 모두 파이프라인을 시작하기 전에 누락된 키 목록과 설정 방법을 안내하고 종료 코드 1로 즉시 종료한다 (`travel_planner.py: exit_on_missing_keys()`).
 
 ## 실행
 
@@ -170,7 +217,7 @@ http://localhost:8000
 
 ### API 호출 예시 (curl)
 
-`/api/plan`은 SSE(Server-Sent Events)로 응답한다. `-N`(no-buffer) 옵션을 붙여야 스트리밍 로그가 실시간으로 보인다.
+`/api/plan`은 SSE(Server-Sent Events)로 응답한다. `-N`(no-buffer) 옵션을 붙여야 스트리밍 로그가 실시간으로 보인다. 서버를 Docker로 띄웠든 `server.py`로 로컬에서 띄웠든 요청 형식은 동일하다.
 
 ```bash
 # 올바른 요청 — 오늘(2026-07-01) 이후 ~ 1년 이내 날짜
