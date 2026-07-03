@@ -927,8 +927,9 @@ git push --force origin main
 
   <table>
     <tr><th>상황</th><th>명령</th></tr>
-    <tr><td>Docker 이미지 로컬 빌드</td><td><code>docker build -t 42doji/travel-agent .</code></td></tr>
-    <tr><td>빌드한 이미지 실행</td><td><code>docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent</code></td></tr>
+    <tr><td>Docker 빌드 + 실행 (compose, 권장)</td><td><code>docker compose up --build -d</code></td></tr>
+    <tr><td>Docker 이미지 수동 빌드 (커스텀 태그 등)</td><td><code>docker build -t 42doji/travel-agent .</code></td></tr>
+    <tr><td>Docker 컨테이너 수동 실행 (빌드 후)</td><td><code>docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent</code></td></tr>
     <tr><td>Docker 컨테이너에 날짜 쿼리 (웹 API)</td><td><code>curl -N "http://localhost:8000/api/plan?date=2026-07-15"</code></td></tr>
     <tr><td>Docker 컨테이너 내부에서 CLI 직접 실행</td><td><code>docker exec -it travel-agent python travel_planner.py --date "2026-07-15"</code></td></tr>
     <tr><td>Docker 없이 로컬에서 CLI 직접 실행</td><td><code>python travel_planner.py --date "2026-07-15"</code></td></tr>
@@ -936,7 +937,7 @@ git push --force origin main
   </table>
 
   <div class="section-sub">Docker 이미지 직접 빌드해서 실행 (레지스트리 없이)</div>
-  <p>코드를 수정한 뒤 Docker Hub에 올리지 않고 바로 테스트하고 싶을 때 쓰는 가장 기본적인 흐름이다.</p>
+  <p>이 저장소엔 이미 <code>docker-compose.yml</code>이 있어서, 아래 4단계는 사실 <code>docker compose up --build -d</code> <strong>한 줄</strong>과 동일한 일을 한다 — compose가 빌드·포트(<code>8000:8000</code>)·<code>--env-file</code>·볼륨 마운트를 <code>docker-compose.yml</code>에 정의된 대로 자동으로 채워주기 때문이다. 아래 수동 방식은 Docker Hub용 커스텀 태그로 빌드하거나 compose 없이 이미지 파일만 다뤄야 할 때만 필요하다.</p>
 
   <div class="code-block"><pre>
 <span class="c-comment"># 1. 이미지 빌드 (태그명은 자유 지정)</span>
@@ -955,7 +956,7 @@ docker run -d \
 </pre></div>
 
   <div class="callout">
-    <strong>⚠️ <code>--env-file .env</code>를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.</strong> API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 <code>travel_planner.py: exit_on_missing_keys()</code>가 <code>sys.exit(1)</code>로 즉시 종료시키기 때문이다(3장 "④ API 키를 .env로 관리하는 이유" 참고). <code>docker ps -a</code>에서 <code>Exited (1)</code>로 나온다면 <code>docker logs &lt;컨테이너명&gt;</code>으로 누락된 키 목록을 바로 확인할 수 있다.
+    <strong>⚠️ <code>--env-file .env</code>를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.</strong> API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 <code>travel_planner.py: exit_on_missing_keys()</code>가 <code>sys.exit(1)</code>로 즉시 종료시키기 때문이다(3장 "④ API 키를 .env로 관리하는 이유" 참고). <code>docker ps -a</code>에서 <code>Exited (1)</code>로 나온다면 <code>docker logs &lt;컨테이너명&gt;</code>으로 누락된 키 목록을 바로 확인할 수 있다. <strong>이 실수를 원천 차단하려면 <code>docker compose up --build -d</code>를 쓴다</strong> — <code>--env-file</code>을 손으로 입력할 필요가 없다.
   </div>
 
   <div class="section-sub">Docker 컨테이너에 명령 내리기</div>

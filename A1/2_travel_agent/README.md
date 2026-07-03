@@ -37,8 +37,9 @@
 
 | 상황 | 명령 |
 |------|------|
-| **Docker** 이미지 로컬 빌드 | `docker build -t 42doji/travel-agent .` → [상세](#로컬에서-이미지-직접-빌드해-실행-레지스트리-없이) |
-| **Docker** 컨테이너 실행 (빌드 후) | `docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent` |
+| **Docker** 빌드 + 실행 (compose, 권장) | `docker compose up --build -d` → [상세](#docker-권장) |
+| **Docker** 이미지 수동 빌드 (커스텀 태그 등) | `docker build -t 42doji/travel-agent .` → [상세](#로컬에서-이미지-직접-빌드해-실행-레지스트리-없이) |
+| **Docker** 컨테이너 수동 실행 (빌드 후) | `docker run -d --name travel-agent -p 8000:8000 --env-file .env 42doji/travel-agent` |
 | **Docker** 컨테이너에 날짜 쿼리 (웹 API, curl) | `curl -N "http://localhost:8000/api/plan?date=2026-07-15"` |
 | **Docker** 컨테이너 내부에서 CLI 직접 실행 | `docker exec -it travel-agent python travel_planner.py --date "2026-07-15"` |
 | **Docker 없이** 로컬에서 CLI 직접 실행 | `source .venv/bin/activate && python travel_planner.py --date "2026-07-15"` |
@@ -97,6 +98,10 @@ docker exec -it travel-agent python travel_planner.py --date "2026-07-15"
 
 ### 로컬에서 이미지 직접 빌드해 실행 (레지스트리 없이)
 
+> 💡 **이 저장소엔 이미 `docker-compose.yml`이 있다.** 아래 `docker build` + `docker run` 4단계는 사실 맨 위 ["Docker (권장)"](#docker-권장)의 `docker compose up --build -d` **한 줄**과 동일한 일을 한다 — compose가 빌드·포트(`8000:8000`)·`--env-file`·볼륨 마운트를 `docker-compose.yml`에 미리 정의된 대로 자동으로 채워주기 때문이다. 실제로 방금 겪은 "컨테이너가 뜨자마자 종료" 문제도 `docker build` + `docker run`을 손으로 조합하다가 `--env-file`을 빠뜨려서 생긴 것으로, `docker compose up --build -d`를 썼다면 애초에 발생하지 않았다.
+>
+> 아래처럼 **개별 명령을 직접 다뤄야 할 때만** 이 섹션을 참고한다: Docker Hub에 올릴 커스텀 태그로 빌드할 때, 여러 이미지를 동시에 굴려야 할 때, 또는 `docker-compose.yml` 없이 이미지 파일만 받은 경우.
+
 코드를 수정한 뒤 Docker Hub에 올리지 않고 바로 테스트하고 싶을 때 쓰는 방법. `docker compose` 없이 `docker build` + `docker run`만으로 끝난다.
 
 ```bash
@@ -123,7 +128,7 @@ docker logs -f travel-agent
 docker rm -f travel-agent
 ```
 
-> ⚠️ **`--env-file .env`를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.** API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 `exit_on_missing_keys()`가 `exit(1)`로 즉시 종료시키기 때문이다(["API 키 발급 안내"](#api-키-발급-안내) 아래 참고). `docker ps -a`에서 `Exited (1)`로 나온다면 `docker logs <컨테이너명>`으로 누락된 키 목록을 확인할 수 있다.
+> ⚠️ **`--env-file .env`를 빠뜨리면 컨테이너가 뜨자마자 조용히 종료된다.** API 키 3종이 하나도 전달되지 않으면 웹서버가 시작되기도 전에 `exit_on_missing_keys()`가 `exit(1)`로 즉시 종료시키기 때문이다(["API 키 발급 안내"](#api-키-발급-안내) 아래 참고). `docker ps -a`에서 `Exited (1)`로 나온다면 `docker logs <컨테이너명>`으로 누락된 키 목록을 확인할 수 있다. **이 실수 자체를 원천 차단하려면 `docker compose up --build -d`를 쓴다** — `--env-file`을 매번 손으로 입력할 필요가 없다.
 
 ### Docker Hub 이미지 (`42doji/travel-agent`)
 
