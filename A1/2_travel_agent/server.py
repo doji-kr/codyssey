@@ -26,13 +26,22 @@ async def index():
     return Path("static/index.html").read_text(encoding="utf-8")
 
 
+MAX_TOP_N = len(travel_planner.weather.CANDIDATE_CITIES)
+
+
 @app.get("/api/plan")
-async def plan_stream(date: str):
-    """날짜를 받아 파이프라인을 실행하고 SSE로 진행 상황을 스트리밍."""
+async def plan_stream(date: str, top_n: int = travel_planner.TOP_N_CITIES):
+    """날짜를 받아 파이프라인을 실행하고 SSE로 진행 상황을 스트리밍.
+
+    top_n: 쾌적도 상위 몇 개 도시를 Fan-Out 수집할지 (복수 도시 추천).
+    """
     try:
         date = travel_planner.check_date(date)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    if not (1 <= top_n <= MAX_TOP_N):
+        raise HTTPException(status_code=400, detail=f"top_n은 1~{MAX_TOP_N} 범위여야 합니다.")
 
     msg_queue: queue.Queue = queue.Queue()
 
@@ -41,7 +50,7 @@ async def plan_stream(date: str):
 
     def run_pipeline():
         try:
-            json_path, md_path, markdown, raw_data = travel_planner.run(date, log=log)
+            json_path, md_path, markdown, raw_data = travel_planner.run(date, log=log, top_n=top_n)
             msg_queue.put({
                 "type":        "done",
                 "markdown":    markdown,

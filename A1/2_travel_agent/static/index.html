@@ -148,6 +148,24 @@
     }
     #date-input:focus { border-color: var(--text); }
 
+    #topn-input {
+      width: 4.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .65rem .6rem;
+      font-size: .85rem;
+      background: var(--bg);
+      outline: none;
+      color: var(--text);
+      text-align: center;
+    }
+    #topn-input:focus { border-color: var(--text); }
+    .topn-label {
+      display: flex; align-items: center;
+      font-size: .73rem; color: var(--muted);
+      white-space: nowrap;
+    }
+
     #run-btn {
       background: var(--text); color: #fff;
       border: none; border-radius: 6px;
@@ -540,6 +558,8 @@
 
       <div class="date-row">
         <input id="date-input" type="date" />
+        <span class="topn-label">추천 도시 수</span>
+        <input id="topn-input" type="number" min="1" max="11" value="3" title="쾌적도 상위 N개 도시를 Fan-Out으로 비교 (1~11)" />
         <button id="run-btn" onclick="runPipeline()">리포트 생성 →</button>
       </div>
       <div id="date-error"></div>
@@ -857,6 +877,7 @@ results/{DATE}_travel_plan.md
 
   // ── 날짜 범위 ─────────────────────────────────────
   const dateInput = document.getElementById('date-input');
+  const topnInput = document.getElementById('topn-input');
   const today    = new Date();
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   const maxDate  = new Date(today); maxDate.setDate(today.getDate() + 365);
@@ -992,6 +1013,14 @@ results/{DATE}_travel_plan.md
       return;
     }
 
+    let topN = parseInt(topnInput.value, 10);
+    if (!Number.isInteger(topN) || topN < 1 || topN > 11) {
+      const err = document.getElementById('date-error');
+      err.textContent = '추천 도시 수는 1~11 사이여야 합니다.';
+      err.style.display = 'block';
+      return;
+    }
+
     hideResults();
     setRunning(true);
 
@@ -1000,7 +1029,7 @@ results/{DATE}_travel_plan.md
     document.getElementById('log-spinner').style.display = 'block';
     document.getElementById('log-label').textContent = '파이프라인 실행 중';
 
-    const evtSource = new EventSource(`/api/plan?date=${date}`);
+    const evtSource = new EventSource(`/api/plan?date=${date}&top_n=${topN}`);
 
     evtSource.onmessage = (e) => {
       const msg = JSON.parse(e.data);
