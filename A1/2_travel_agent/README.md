@@ -29,7 +29,7 @@
 
 > **캐시**: 동일 날짜를 재실행하면 `results/` 파일을 그대로 반환하고 모든 API 호출을 생략한다.
 >
-> **복수 도시 추천 (Fan-Out)**: 쾌적도 점수 상위 `--top-n`(기본 3)개 도시를 순회하며 축제·맛집·숙박·이미지를 각각 수집한다. 1위 도시는 `raw_data.json`의 최상위 필드(`city`/`festivals`/`restaurants`/`stays`)에, 전체 후보는 `cities[]` 배열에 담기며 리포트 맨 앞에 도시 비교 섹션으로 요약된다.
+> **복수 도시 추천 (Fan-Out)**: 쾌적도 점수 상위 N(기본 3)개 도시를 순회하며 축제·맛집·숙박·이미지를 각각 수집한다. N은 CLI `--top-n`, 웹 API `/api/plan?top_n=`, 웹 UI의 "추천 도시 수" 입력창 세 가지 경로 모두에서 조정 가능하다(1~11). 1위 도시는 `raw_data.json`의 최상위 필드(`city`/`festivals`/`restaurants`/`stays`)에, 전체 후보는 `cities[]` 배열에 담기며 리포트 맨 앞에 도시 비교 섹션으로 요약된다.
 
 ## 실행 방법 한눈에 보기
 
@@ -214,7 +214,7 @@ http://localhost:8000
 
 | 기능 | 설명 |
 |------|------|
-| Planner 탭 | 날짜 선택 → 실시간 로그 스트리밍 → 마크다운 리포트 + 사진 카드 |
+| Planner 탭 | 날짜 선택 + **추천 도시 수(1~11, 기본 3) 입력** → 실시간 로그 스트리밍 → 마크다운 리포트 + 사진 카드 |
 | History 탭 | 과거 생성된 리포트 목록 → 클릭 시 토글로 결과 확인 |
 | Docs 탭 | 요구사항·파이프라인·API·스키마 설명 |
 
@@ -225,8 +225,11 @@ http://localhost:8000
 `/api/plan`은 SSE(Server-Sent Events)로 응답한다. `-N`(no-buffer) 옵션을 붙여야 스트리밍 로그가 실시간으로 보인다. 서버를 Docker로 띄웠든 `server.py`로 로컬에서 띄웠든 요청 형식은 동일하다.
 
 ```bash
-# 올바른 요청 — 오늘(2026-07-01) 이후 ~ 1년 이내 날짜
+# 올바른 요청 — 오늘(2026-07-01) 이후 ~ 1년 이내 날짜 (top_n 생략 시 기본값 3)
 curl -N "http://localhost:8000/api/plan?date=2026-07-15"
+
+# top_n으로 Fan-Out 대상 도시 수 조정 (복수 도시 추천)
+curl -N "http://localhost:8000/api/plan?date=2026-07-15&top_n=5"
 ```
 
 ```bash
@@ -237,6 +240,10 @@ curl -i "http://localhost:8000/api/plan?date=2026-13-99"
 # 잘못된 요청 예시 — 과거 날짜도 동일하게 400
 curl -i "http://localhost:8000/api/plan?date=2026-01-01"
 # {"detail":"'2026-01-01'은 오늘 이전 날짜입니다. 내일 이후 날짜를 입력하세요."}
+
+# 잘못된 요청 예시 — top_n이 후보 도시 수(11) 범위를 벗어나면 400
+curl -i "http://localhost:8000/api/plan?date=2026-07-15&top_n=99"
+# {"detail":"top_n은 1~11 범위여야 합니다."}
 ```
 
 ### CLI 실행 결과 예시
